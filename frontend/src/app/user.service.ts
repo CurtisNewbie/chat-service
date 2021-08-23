@@ -1,18 +1,12 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
+import { HEADERS } from './models/Headers';
 import { Resp } from './models/resp';
 import { ChangePasswordParam, UserInfo } from './models/user-info';
 import { NavigationService, NavType } from './navigation.service';
 import { NotificationService } from './notification.service';
 import { buildApiPath } from './util/api-util';
-
-const headers = {
-  headers: new HttpHeaders({
-    'Content-Type': 'application/json',
-  }),
-  withCredentials: true,
-};
 
 @Injectable({
   providedIn: 'root',
@@ -37,11 +31,11 @@ export class UserService {
    * @param username
    * @param password
    */
-  public login(username: string, password: string): Observable<Resp<any>> {
+  public login(username: string, password: string): Observable<Resp<void>> {
     let formData = new FormData();
     formData.append('username', username);
     formData.append('password', password);
-    return this.http.post<Resp<any>>(buildApiPath('/login'), formData, {
+    return this.http.post<Resp<void>>(buildApiPath('/login'), formData, {
       withCredentials: true,
     });
   }
@@ -49,7 +43,7 @@ export class UserService {
   /**
    * Logout current user
    */
-  public logout(): Observable<any> {
+  public logout(): Observable<void> {
     this.setLogout();
     return this.http.get<void>(buildApiPath('/logout'), {
       withCredentials: true,
@@ -119,7 +113,7 @@ export class UserService {
     return this.http.post<Resp<any>>(
       buildApiPath('/user/password/update'),
       param,
-      headers
+      HEADERS
     );
   }
 }

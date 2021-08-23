@@ -1,95 +1,158 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { SocketService } from '../socket.service';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  OnDestroy,
+} from '@angular/core';
 import { WebSocketSubject } from 'rxjs/webSocket';
+import { Member } from '../models/Member';
+import { RoomService } from '../room.service';
+import { RoomType } from '../models/Room';
+import { NotificationService } from '../notification.service';
+import { Message, PollMessageResponse } from '../models/Message';
 
 @Component({
   selector: 'app-chat-room',
   templateUrl: './chat-room.component.html',
   styleUrls: ['./chat-room.component.css'],
 })
-export class ChatRoomComponent implements OnInit {
+export class ChatRoomComponent implements OnInit, OnDestroy {
   private wss: WebSocketSubject<string> = null;
   username: string;
-  roomKey: string;
+  roomId: string;
   chatMsgs: string = '';
   currMsg: string = '';
-  members: string[] = [];
+  isConnected: boolean = false;
+  members: Member[] = [];
+  messages: Message[] = [];
+  msgIdSet: Set<number> = new Set();
+  pollMsgInterval = null;
 
   @ViewChild('chatTextArea')
   chatTextArea: ElementRef;
 
-  constructor(private socket: SocketService) {}
+  constructor(
+    private roomService: RoomService,
+    private notifi: NotificationService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // poll messages for every 0.5 seconds
+    this.pollMsgInterval = setInterval(() => this.pollMessages(), 500);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.pollMsgInterval);
+  }
 
   /**
-   * Ask the backend to create a new chat room and fetches the key to this room
+   * Create new room
    */
   createRoom() {
-    this.socket.fetchRoomKey().subscribe({
-      next: (v) => {
-        this.roomKey = v;
-      },
-      error: (e) => {
-        console.log(e);
-      },
-      complete: () => {
-        this.connectRoom();
-      },
-    });
+    this.roomService
+      .createNewRoom({
+        // todo this part isn't implemented yet
+        roomType: RoomType.PRIVATE,
+      })
+      .subscribe({
+        next: (resp) => {
+          this.roomId = resp.data;
+          this.notifi.toast(`Connected to room: ${this.roomId}`);
+          this.isConnected = true;
+        },
+      });
+  }
+
+  /**
+   * Create new room
+   */
+  disconnectRoom() {
+    this.roomService
+      .disconnectRoom({
+        roomId: this.roomId,
+      })
+      .subscribe({
+        complete: () => {
+          this.roomId = null;
+          this.notifi.toast(`room disconnected`);
+          this.isConnected = false;
+        },
+      });
   }
 
   /**
    * Connect to the chat room
    */
   connectRoom() {
-    let name = this.username;
-    let key = this.roomKey;
-    this.wss = this.socket.openWsConn(name, key);
-    if (this.wss != null) {
-      console.log(`Connected to room: ${key} using ${name}`);
-      // subscribe to webSocketSubject
-      let subscription = this.wss.subscribe({
-        next: (msg: string) => {
-          this.chatMsgs += msg + '\n';
-          this.scrollTextAreaToBtm();
-          // fetch members
-          this.fetchMembers();
-        },
-        error: (err: any) => {
-          console.log(err);
-        },
+    if (!this.roomId) {
+      this.notifi.toast('Please create or connect to a room first');
+      return;
+    }
+
+    this.roomService
+      .connectRoom({
+        roomId: this.roomId,
+      })
+      .subscribe({
         complete: () => {
-          alert(
-            'Connection is lost, please create a new room or connect to another one.'
-          );
-          subscription.unsubscribe();
-          this.wss = null;
+          this.notifi.toast(`Connected to room: ${this.roomId}`);
+          this.isConnected = true;
         },
       });
-    }
+  }
+
+  pollMessages() {
+    if (!this.isConnected) return;
+
+    let lastId = null;
+    if (this.messages.length > 0)
+      lastId = this.messages[this.messages.length - 1].messageId;
+
+    this.roomService
+      .pollMessages({
+        roomId: this.roomId,
+        lastMessageId: lastId,
+        limit: 10,
+      })
+      .subscribe({
+        next: (resp) => {
+          let mp: PollMessageResponse = resp.data;
+          for (let m of mp.messages) {
+            if (!this.msgIdSet.has(m.messageId)) {
+              this.messages.push(m);
+            }
+          }
+        },
+      });
   }
 
   /**
    * Send a message
    */
   sendMsg() {
-    if (this.wss != null) {
-      this.wss.next(this.currMsg);
-      this.currMsg = '';
-      this.scrollTextAreaToBtm();
-    } else {
-      alert("You haven't connected to any room, try create or connect one");
-    }
+    if (!this.isConnected) return;
+
+    this.roomService
+      .sendMessage({
+        roomId: this.roomId,
+        message: this.currMsg,
+      })
+      .subscribe({
+        complete: () => {
+          this.notifi.toast('Message sent');
+          this.scrollTextAreaToBtm();
+        },
+      });
   }
 
   /**
    * Fetch room members
    */
   fetchMembers() {
-    this.socket.fetchRoomMember().subscribe({
-      next: (val: string[]) => {
-        this.members = val;
+    this.roomService.listMembers({ roomId: this.roomId }).subscribe({
+      next: (resp) => {
+        this.members = resp.data;
       },
     });
   }

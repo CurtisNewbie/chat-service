@@ -9,6 +9,7 @@ export class NavigationService {
 
   /** Navigate to using Router*/
   public navigateTo(nt: NavType): void {
+    console.log('navigate to', nt);
     this.router.navigate([nt]);
   }
 }

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { UserService } from '../user.service';
 
 @Component({
@@ -6,7 +7,8 @@ import { UserService } from '../user.service';
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.css'],
 })
-export class NavComponent implements OnInit {
+export class NavComponent implements OnInit, OnDestroy {
+  isLoggedInSub: Subscription = null;
   isLoggedIn: boolean = false;
 
   constructor(private userService: UserService) {}
@@ -15,11 +17,16 @@ export class NavComponent implements OnInit {
     if (!this.userService.hasUserInfo()) {
       this.userService.fetchUserInfo();
     }
-    this.userService.isLoggedInObservable.subscribe({
+    this.isLoggedInSub = this.userService.isLoggedInObservable.subscribe({
       next: (isLoggedIn) => {
         this.isLoggedIn = isLoggedIn;
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.isLoggedInSub != null && !this.isLoggedInSub.closed)
+      this.isLoggedInSub.unsubscribe();
   }
 
   /** log out current user and navigate back to login page */
