@@ -92,9 +92,18 @@ public class RedisRoomProxy implements Room {
         RScoredSortedSet<MessageVo> sortedMessageMap = getSortedMessageMap();
         Collection<ScoredEntry<MessageVo>> scoredEntries = sortedMessageMap.entryRange(messageId, false,
                 Double.POSITIVE_INFINITY, false, 0, limit);
+
+        List<MessageVo> messages = scoredEntries.stream()
+                .map(s -> s.getValue())
+                .sorted(Comparator.comparing(MessageVo::getMessageId))
+                .collect(Collectors.toList());
+
+        // check if the last one is the one with greatest score
+        boolean hasMore = !messages.get(messages.size() - 1).equals(sortedMessageMap.lastScore());
+
         return PollMessageRespVo.builder()
-                .hasMore(false)
-                .messages(scoredEntries.stream().map(s -> s.getValue()).collect(Collectors.toList()))
+                .hasMore(hasMore)
+                .messages(messages)
                 .build();
     }
 
