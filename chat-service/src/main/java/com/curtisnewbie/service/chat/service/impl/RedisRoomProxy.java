@@ -1,10 +1,12 @@
-package com.curtisnewbie.service.chat.service;
+package com.curtisnewbie.service.chat.service.impl;
 
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
+import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.util.RoomUtil;
 import com.curtisnewbie.service.chat.vo.MemberVo;
 import com.curtisnewbie.service.chat.vo.MessageVo;
 import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.*;
 import org.redisson.client.protocol.ScoredEntry;
@@ -17,19 +19,20 @@ import java.util.stream.Collectors;
 import static com.curtisnewbie.service.chat.util.RoomUtil.getRoomInfoMapKey;
 import static com.curtisnewbie.service.chat.util.RoomUtil.getRoomLockKey;
 
-//todo consider somehow caching this room instance?
+//todo consider somehow we can cache this room instance?
 
 /**
  * @author yongjie.zhuang
  */
 @Slf4j
-public class RoomImpl implements Room {
+@Builder
+public class RedisRoomProxy implements Room {
 
     private static final String MESSAGE_ID_FIELD = "message-id";
     private final RedissonClient redisson;
     private final String roomId;
 
-    public RoomImpl(RedissonClient redisson, String roomId) {
+    public RedisRoomProxy(RedissonClient redisson, String roomId) {
         this.redisson = redisson;
         this.roomId = roomId;
     }
@@ -45,7 +48,13 @@ public class RoomImpl implements Room {
         try {
             while (!tryTimeoutLock(roomLock))
                 ;
-            getSortedMessageMap().add(lastMsgId, new MessageVo(user.getUsername(), msg, lastMsgId));
+
+            getSortedMessageMap()
+                    .add(lastMsgId, MessageVo.builder()
+                            .sender(user.getUsername())
+                            .message(msg)
+                            .messageId(lastMsgId)
+                            .build());
         } finally {
             roomLock.unlock();
         }
@@ -69,7 +78,10 @@ public class RoomImpl implements Room {
         Set<Object> keys = roomInfoMap.keySet();
         for (Object key : keys) {
             if (!Objects.equals(key, MESSAGE_ID_FIELD)) {
-                members.add(new MemberVo((int) key, (String) roomInfoMap.get(key)));
+                members.add(MemberVo.builder()
+                        .id((int) key)
+                        .username((String) roomInfoMap.get(key))
+                        .build());
             }
         }
         return members;
@@ -108,7 +120,7 @@ public class RoomImpl implements Room {
     }
 
     @Override
-    public void create(@NotNull UserVo user) {
+    public void create(@NotNull UserVo createdBy) {
         RLock roomLock = getRoomLock();
         try {
             while (!tryTimeoutLock(roomLock))
@@ -117,14 +129,14 @@ public class RoomImpl implements Room {
             if (getRoomInfoMap().isExists())
                 return;
 
-            getRoomInfoMap().put(user.getId(), user.getUsername());
+            getRoomInfoMap().put(createdBy.getId(), createdBy.getUsername());
         } finally {
             roomLock.unlock();
         }
     }
 
     @Override
-    public boolean contains(int userId) {
+    public boolean containsUser(int userId) {
         return getRoomInfoMap().containsKey(userId);
     }
 

@@ -1,8 +1,7 @@
 package com.curtisnewbie.service.chat.vo;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -12,8 +11,7 @@ import lombok.NoArgsConstructor;
  * @author yongjie.zhuang
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
 public class MemberVo {
 
     /** primary key */

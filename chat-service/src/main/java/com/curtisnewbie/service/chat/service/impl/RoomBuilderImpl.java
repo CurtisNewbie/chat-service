@@ -2,7 +2,6 @@ package com.curtisnewbie.service.chat.service.impl;
 
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomBuilder;
-import com.curtisnewbie.service.chat.service.RoomImpl;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,10 @@ public class RoomBuilderImpl implements RoomBuilder {
 
     @Override
     public Room buildRoom(@NotNull String roomId) {
-        return new RoomImpl(redissonClient, roomId);
+        return RedisRoomProxy.builder()
+                .redisson(redissonClient)
+                .roomId(roomId)
+                .build();
     }
 
 }

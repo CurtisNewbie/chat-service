@@ -64,10 +64,10 @@ public interface Room {
     /**
      * Create this room (should only called when this room doesn't exists)
      */
-    void create(@NotNull UserVo user);
+    void create(@NotNull UserVo createdBy);
 
     /**
      * Check if the room contains specified user
      */
-    boolean contains(int userId);
+    boolean containsUser(int userId);
 }
