@@ -11,6 +11,7 @@ import { RoomType } from '../models/Room';
 import { NotificationService } from '../notification.service';
 import { Message, PollMessageResponse } from '../models/Message';
 import { UserService } from '../user.service';
+import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-chat-room',
@@ -22,14 +23,13 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   currMsg: string = null;
   isConnected: boolean = false;
   members: Member[] = [];
-  messages: Message[] = [
-    { message: 'Welcome!', messageId: null, sender: 'Server' },
-  ];
+  messages: Message[] = [];
   msgIdSet: Set<number> = new Set();
   pollMsgInterval = null;
+  pollMembersInterval = null;
 
-  @ViewChild('chatTextArea')
-  chatTextArea: ElementRef;
+  @ViewChild('virtualScroll')
+  virtualScroll: CdkVirtualScrollViewport;
 
   constructor(
     private roomService: RoomService,
@@ -40,10 +40,11 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // poll messages for every 0.5 seconds
     this.pollMsgInterval = setInterval(() => this.pollMessages(), 1000);
+    this.pollMembersInterval = setInterval(() => this.pollMembers(), 3000);
   }
 
   ngOnDestroy(): void {
-    if (this.pollMsgInterval) clearInterval(this.pollMsgInterval);
+    this.clearIntervals();
   }
 
   /**
@@ -60,6 +61,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           this.roomId = resp.data;
           this.notifi.toast(`Connected to room: ${this.roomId}`);
           this.isConnected = true;
+          this.pollMembers();
         },
       });
   }
@@ -77,6 +79,9 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           this.roomId = null;
           this.notifi.toast(`room disconnected`);
           this.isConnected = false;
+          this.clearIntervals();
+          this.messages = [];
+          this.msgIdSet.clear();
         },
       });
   }
@@ -104,7 +109,6 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
 
   pollMessages() {
     if (!this.isConnected) return;
-    console.log(this.messages);
 
     let lastId = null;
     if (this.messages.length > 0)
@@ -119,14 +123,32 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (resp) => {
           let mp: PollMessageResponse = resp.data;
-          let ma: Message[] = [];
+          let changed: boolean = false;
           for (let m of mp.messages) {
-            if (m != null && !this.msgIdSet.has(m.messageId)) {
+            if (!this.msgIdSet.has(m.messageId)) {
+              changed = true;
               this.messages.push(m);
               this.msgIdSet.add(m.messageId);
             }
           }
-          this.messages = [...this.messages];
+          if (changed) {
+            this.messages = [...this.messages];
+            this.virtualScroll.scrollToIndex(0);
+          }
+        },
+      });
+  }
+
+  pollMembers(): void {
+    if (!this.isConnected) return;
+
+    this.roomService
+      .listMembers({
+        roomId: this.roomId,
+      })
+      .subscribe({
+        next: (resp) => {
+          this.members = resp.data;
         },
       });
   }
@@ -145,9 +167,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         complete: () => {
-          this.notifi.toast('Message sent');
           this.currMsg = null;
-          // this.scrollTextAreaToBtm();
         },
       });
   }
@@ -167,7 +187,13 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     if (!this.userService.hasUserInfo()) return false;
     return msg.sender === this.userService.getUserInfo().username;
   }
+
   msgInputKeyPressed(event: any): void {
     if (event.key === 'Enter') this.sendMsg();
+  }
+
+  clearIntervals(): void {
+    if (this.pollMsgInterval) clearInterval(this.pollMsgInterval);
+    if (this.pollMembersInterval) clearInterval(this.pollMembersInterval);
   }
 }

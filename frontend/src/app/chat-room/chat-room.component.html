@@ -1,53 +1,71 @@
-<div class="container-fluid">
-    <div class="mt-3">
+<div class="container-fluid h-100">
+    <div class="mt-3 mb-3">
         <h3>Chat Room</h3>
     </div>
-    <div class="row">
+    <div class="row h-100">
         <div class="col-8">
-            <mat-form-field appearance="fill" style="width: 100%;" class="mt-2">
-                <mat-label>Room Id</mat-label>
-                <input matInput type="text" id="usernameInput" [(ngModel)]="roomId" [disabled]="isConnected">
-                <button *ngIf="roomId" matSuffix mat-icon-button aria-label="Clear" (click)="roomId=''"
-                    [disabled]="isConnected">
-                    <mat-icon>close</mat-icon>
-                </button>
-            </mat-form-field>
-            <div class="mb-2 text-right">
-                <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!isConnected">Create Room</button>
-                <button mat-raised-button class="m-2" (click)="connectRoom()" *ngIf="!isConnected">Connect</button>
-                <button mat-raised-button class="m-2" (click)="disconnectRoom()" *ngIf="isConnected">Disconnect</button>
+            <div class="row h-100">
+                <div class="col">
+                    <mat-form-field appearance="fill" class="mt-2 w-100">
+                        <mat-label>Room Id</mat-label>
+                        <input matInput type="text" id="usernameInput" [(ngModel)]="roomId" [disabled]="isConnected">
+                        <button *ngIf="roomId" matSuffix mat-icon-button aria-label="Clear" (click)="roomId=''"
+                            [disabled]="isConnected">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </mat-form-field>
+                    <div class="mb-2 text-right w-100">
+                        <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!isConnected">Create
+                            Room</button>
+                        <button mat-raised-button class="m-2" (click)="connectRoom()"
+                            *ngIf="!isConnected">Connect</button>
+                        <button mat-raised-button class="m-2" (click)="disconnectRoom()"
+                            *ngIf="isConnected">Disconnect</button>
+                    </div>
+                    <!-- messages  -->
+                    <cdk-virtual-scroll-viewport #virtualScroll [itemSize]="50" [maxBufferPx]="500" class="w-100"
+                        style="height: 400px;">
+                        <mat-card *cdkVirtualFor="let msg of messages;">
+                            <div class="row">
+                                <div class="col">
+                                    <p *ngIf="!sentByCurrUser(msg)" class="label label-md bg-info p-2 rounded"
+                                        style="color:white">
+                                        {{msg.sender}}:
+                                        {{msg.message}}</p>
+                                </div>
+                                <div class="col"></div>
+                                <div class="col"></div>
+                                <div class="col"></div>
+                                <div class="col">
+                                    <p *ngIf="sentByCurrUser(msg)" class="label label-md bg-success p-2 rounded"
+                                        style="color:white">
+                                        {{msg.message}}
+                                    </p>
+                                </div>
+                            </div>
+                        </mat-card>
+                    </cdk-virtual-scroll-viewport>
+                    <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Message:</mat-label>
+                        <input matInput type="text" [(ngModel)]="currMsg" [disabled]="!isConnected"
+                            (keyup)="msgInputKeyPressed($event)">
+                        <button *ngIf="currMsg" matSuffix mat-icon-button aria-label="Clear" (click)="currMsg=''"
+                            [disabled]="!isConnected">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </mat-form-field>
+                </div>
             </div>
-            <!-- messages  -->
-            <cdk-virtual-scroll-viewport #virtualScroll [itemSize]="50" [maxBufferPx]="500" class="h-100 w-100">
-                <!-- [style.height.px]="70" -->
-                <mat-card *cdkVirtualFor="let msg of messages;">
-                    <div *ngIf="sentByCurrUser(msg)" class="text-right">
-                        <p>'{{msg.message}}'</p>
-                    </div>
-
-                    <div *ngIf="!sentByCurrUser(msg)" class="text-left">
-                        <p>{{msg.sender}}: '{{msg.message}}'</p>
-                    </div>
-                </mat-card>
-            </cdk-virtual-scroll-viewport>
-            <mat-form-field appearance="fill" style="width: 100%;">
-                <mat-label>Message:</mat-label>
-                <input matInput type="text" [(ngModel)]="currMsg" [disabled]="!isConnected"
-                    (keyup)="msgInputKeyPressed($event)">
-                <button *ngIf="currMsg" matSuffix mat-icon-button aria-label="Clear" (click)="currMsg=''"
-                    [disabled]="!isConnected">
-                    <mat-icon>close</mat-icon>
-                </button>
-            </mat-form-field>
         </div>
-        <div class="col m-2">
-            <h3>Members:</h3>
-            <ul class="list-group" *ngIf="members.length == 0">
-                <li class="list-group-item">No Member</li>
-            </ul>
-            <ul class="list-group" *ngFor="let m of members">
-                <li class="list-group-item">{{m.id}} - {{m.username}}</li>
-            </ul>
+        <div class="col-4">
+            <div class="row h-100">
+                <div class="col">
+                    <h3>Members:</h3>
+                    <ul class="list-group" *ngFor="let m of members">
+                        <li class="list-group-item">{{m.username}}</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
