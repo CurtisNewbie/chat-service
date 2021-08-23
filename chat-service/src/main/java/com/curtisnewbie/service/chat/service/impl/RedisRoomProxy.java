@@ -110,7 +110,7 @@ public class RedisRoomProxy implements Room {
     @Override
     public PollMessageRespVo getLastMessage() {
         RScoredSortedSet<MessageVo> sortedMessageMap = getSortedMessageMap();
-        MessageVo messageVo = sortedMessageMap.pollLast();
+        MessageVo messageVo = sortedMessageMap.last();
         return PollMessageRespVo.builder()
                 .hasMore(false)
                 .messages(Collections.singletonList(messageVo))
