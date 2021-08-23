@@ -1,0 +1,50 @@
+<div class="container-fluid">
+    <div class="jumbotron">
+        <h1>Chat App</h1>
+    </div>
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Your Name</span>
+                </div>
+                <input class="form-control" [(ngModel)]="username" type="text" placeholder="Enter your name"
+                    id="usernameIn">
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Room Key</span>
+                </div>
+                <input class="form-control" [(ngModel)]="roomKey" type="text"
+                    placeholder="Enter the room key or create a new room" id="roomKeyIn">
+            </div>
+            <div class="text-right">
+                <button class="btn btn-primary text-right" (click)="createRoom()">Create Room</button>
+                <button class="btn btn-primary text-right ml-2" (click)="connectRoom()">Connect</button>
+            </div>
+            <div class="input-group">
+                <textarea disabled='true' class="m-3 form-control" id="chatTextArea" cols="30" rows="10"
+                    #chatTextArea>{{chatMsgs}}</textarea>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Send Message:</span>
+                </div>
+                <input class="form-control" type="text" [(ngModel)]="currMsg" (keyup.enter)="sendMsg()"
+                    placeholder="Enter your message" id="msgOut">
+            </div>
+            <div class="text-right">
+                <button class="btn btn-primary text-right" (click)="sendMsg()">Send</button>
+            </div>
+        </div>
+        <div class="col-sm mb-2">
+            <h3>Members:</h3>
+            <ul class="list-group" *ngIf="members.length == 0">
+                <li class="list-group-item">No Member</li>
+            </ul>
+            <ul class="list-group" *ngFor="let m of members">
+                <li class="list-group-item">{{m}}</li>
+            </ul>
+        </div>
+    </div>
+</div>
