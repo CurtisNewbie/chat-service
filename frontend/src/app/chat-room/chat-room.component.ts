@@ -5,12 +5,12 @@ import {
   ElementRef,
   OnDestroy,
 } from '@angular/core';
-import { WebSocketSubject } from 'rxjs/webSocket';
 import { Member } from '../models/Member';
 import { RoomService } from '../room.service';
 import { RoomType } from '../models/Room';
 import { NotificationService } from '../notification.service';
 import { Message, PollMessageResponse } from '../models/Message';
+import { UserService } from '../user.service';
 
 @Component({
   selector: 'app-chat-room',
@@ -18,14 +18,13 @@ import { Message, PollMessageResponse } from '../models/Message';
   styleUrls: ['./chat-room.component.css'],
 })
 export class ChatRoomComponent implements OnInit, OnDestroy {
-  private wss: WebSocketSubject<string> = null;
-  username: string;
-  roomId: string;
-  chatMsgs: string = '';
-  currMsg: string = '';
+  roomId: string = null;
+  currMsg: string = null;
   isConnected: boolean = false;
   members: Member[] = [];
-  messages: Message[] = [];
+  messages: Message[] = [
+    { message: 'Welcome!', messageId: null, sender: 'Server' },
+  ];
   msgIdSet: Set<number> = new Set();
   pollMsgInterval = null;
 
@@ -34,16 +33,17 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
 
   constructor(
     private roomService: RoomService,
-    private notifi: NotificationService
+    private notifi: NotificationService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
     // poll messages for every 0.5 seconds
-    this.pollMsgInterval = setInterval(() => this.pollMessages(), 500);
+    this.pollMsgInterval = setInterval(() => this.pollMessages(), 1000);
   }
 
   ngOnDestroy(): void {
-    clearInterval(this.pollMsgInterval);
+    if (this.pollMsgInterval) clearInterval(this.pollMsgInterval);
   }
 
   /**
@@ -104,6 +104,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
 
   pollMessages() {
     if (!this.isConnected) return;
+    console.log(this.messages);
 
     let lastId = null;
     if (this.messages.length > 0)
@@ -113,16 +114,19 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       .pollMessages({
         roomId: this.roomId,
         lastMessageId: lastId,
-        limit: 10,
+        limit: 20,
       })
       .subscribe({
         next: (resp) => {
           let mp: PollMessageResponse = resp.data;
+          let ma: Message[] = [];
           for (let m of mp.messages) {
-            if (!this.msgIdSet.has(m.messageId)) {
+            if (m != null && !this.msgIdSet.has(m.messageId)) {
               this.messages.push(m);
+              this.msgIdSet.add(m.messageId);
             }
           }
+          this.messages = [...this.messages];
         },
       });
   }
@@ -132,6 +136,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
    */
   sendMsg() {
     if (!this.isConnected) return;
+    if (!this.currMsg) return;
 
     this.roomService
       .sendMessage({
@@ -141,7 +146,8 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       .subscribe({
         complete: () => {
           this.notifi.toast('Message sent');
-          this.scrollTextAreaToBtm();
+          this.currMsg = null;
+          // this.scrollTextAreaToBtm();
         },
       });
   }
@@ -157,11 +163,11 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Scroll the textarea to its bottom
-   */
-  private scrollTextAreaToBtm() {
-    let textArea: HTMLTextAreaElement = this.chatTextArea.nativeElement;
-    textArea.scrollTop = textArea.scrollHeight;
+  sentByCurrUser(msg: Message): boolean {
+    if (!this.userService.hasUserInfo()) return false;
+    return msg.sender === this.userService.getUserInfo().username;
+  }
+  msgInputKeyPressed(event: any): void {
+    if (event.key === 'Enter') this.sendMsg();
   }
 }

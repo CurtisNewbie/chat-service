@@ -18,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
 import {
   APP_BASE_HREF,
   HashLocationStrategy,
@@ -25,6 +26,7 @@ import {
 } from '@angular/common';
 import { RespInterceptor } from './interceptors/resp-interceptor';
 import { ErrorInterceptor } from './interceptors/error-interceptor';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @NgModule({
   declarations: [
@@ -50,6 +52,8 @@ import { ErrorInterceptor } from './interceptors/error-interceptor';
     MatInputModule,
     MatSelectModule,
     MatDialogModule,
+    MatCardModule,
+    ScrollingModule,
   ],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy },
