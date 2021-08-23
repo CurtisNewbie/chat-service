@@ -11,7 +11,6 @@ import lombok.Data;
  * @author yongjie.zhuang
  */
 @Data
-@Builder
 public class MessageVo {
 
     /**
@@ -28,4 +27,14 @@ public class MessageVo {
      * message id
      */
     private Long messageId;
+
+    @Builder
+    public MessageVo(String sender, String message, Long messageId) {
+        this.sender = sender;
+        this.message = message;
+        this.messageId = messageId;
+    }
+
+    public MessageVo() {
+    }
 }

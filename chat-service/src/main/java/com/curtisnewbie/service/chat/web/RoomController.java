@@ -3,6 +3,7 @@ package com.curtisnewbie.service.chat.web;
 import com.curtisnewbie.common.vo.Result;
 import com.curtisnewbie.module.auth.util.AuthUtil;
 import com.curtisnewbie.service.auth.remote.exception.InvalidAuthenticationException;
+import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 // todo change to web socket instead (in the future :D)
+
 /**
  * <p>
  * Controller for rooms
@@ -49,6 +51,16 @@ public class RoomController {
         return Result.ok();
     }
 
+    @PostMapping("/disconnect")
+    public Result<Void> disconnectFromRoom(@RequestBody DisconnectRoomReqVo v) throws InvalidAuthenticationException,
+            RoomNotFoundException {
+        Room room = roomService.getRoom(v.getRoomId());
+        room.removeMember(AuthUtil.getUser());
+
+        log.info("Disconnected from room");
+        return Result.ok();
+    }
+
     @PostMapping("/members")
     public Result<List<MemberVo>> listMembers(@RequestBody ListRoomMembersReqVo vo) throws InvalidAuthenticationException,
             RoomNotFoundException {
@@ -72,6 +84,20 @@ public class RoomController {
             return Result.of(room.getLastMessage());
         else
             return Result.of(room.getMessagesAfter(vo.getLastMessageId(), vo.getLimit()));
+    }
+
+    @PostMapping("/message/post")
+    public Result<Void> sendMessages(@RequestBody SendMessageReqVo vo) throws InvalidAuthenticationException,
+            RoomNotFoundException {
+        UserVo user = AuthUtil.getUser();
+
+        Room room = roomService.getRoom(vo.getRoomId());
+        if (!room.containsUser(user.getId()))
+            return Result.error("You are not in this room anymore, or the room has been removed");
+
+        room.sendMessage(user, vo.getMessage());
+        log.info("Sent messages");
+        return Result.ok();
     }
 
 }

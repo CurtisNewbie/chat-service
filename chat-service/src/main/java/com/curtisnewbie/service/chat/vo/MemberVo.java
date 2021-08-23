@@ -11,7 +11,6 @@ import lombok.Data;
  * @author yongjie.zhuang
  */
 @Data
-@Builder
 public class MemberVo {
 
     /** primary key */
@@ -20,4 +19,11 @@ public class MemberVo {
     /** username (must be unique) */
     private String username;
 
+    public MemberVo(){}
+
+    @Builder
+    public MemberVo(Integer id, String username) {
+        this.id = id;
+        this.username = username;
+    }
 }

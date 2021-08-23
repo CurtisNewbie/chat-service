@@ -99,7 +99,7 @@ public class RedisRoomProxy implements Room {
                 .collect(Collectors.toList());
 
         // check if the last one is the one with greatest score
-        boolean hasMore = !messages.get(messages.size() - 1).equals(sortedMessageMap.lastScore());
+        boolean hasMore = !messages.isEmpty() && !messages.get(messages.size() - 1).equals(sortedMessageMap.lastScore());
 
         return PollMessageRespVo.builder()
                 .hasMore(hasMore)
