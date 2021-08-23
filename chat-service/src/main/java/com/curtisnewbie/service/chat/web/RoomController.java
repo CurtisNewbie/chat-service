@@ -23,7 +23,7 @@ import java.util.List;
  *
  * @author yongjie.zhuang
  */
-@RequestMapping("${baseApi}/room")
+@RequestMapping("${web.base-path}/room")
 @RestController
 public class RoomController {
 
