@@ -91,7 +91,7 @@ public class RedisRoomProxy implements Room {
     public PollMessageRespVo getMessagesAfter(long messageId, int limit) {
         RScoredSortedSet<MessageVo> sortedMessageMap = getSortedMessageMap();
         Collection<ScoredEntry<MessageVo>> scoredEntries = sortedMessageMap.entryRange(messageId, false,
-                Double.POSITIVE_INFINITY, false);
+                Double.POSITIVE_INFINITY, false, 0, limit);
         return PollMessageRespVo.builder()
                 .hasMore(false)
                 .messages(scoredEntries.stream().map(s -> s.getValue()).collect(Collectors.toList()))
