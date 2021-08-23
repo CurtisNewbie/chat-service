@@ -7,6 +7,7 @@ import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomService;
 import com.curtisnewbie.service.chat.vo.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +24,7 @@ import java.util.List;
  *
  * @author yongjie.zhuang
  */
+@Slf4j
 @RequestMapping("${web.base-path}/room")
 @RestController
 public class RoomController {
@@ -32,7 +34,9 @@ public class RoomController {
 
     @PostMapping("/new")
     public Result<String> createNewRoom(@RequestBody CreateRoomReqVo vo) throws InvalidAuthenticationException {
-        return Result.of(roomService.createNewRoom(AuthUtil.getUser(), vo).getRoomId());
+        Room room = roomService.createNewRoom(AuthUtil.getUser(), vo);
+        log.info("Room created");
+        return Result.of(room.getRoomId());
     }
 
     @PostMapping("/connect")
@@ -40,17 +44,19 @@ public class RoomController {
             RoomNotFoundException {
         Room room = roomService.getRoom(v.getRoomId());
         room.addMember(AuthUtil.getUser());
+
+        log.info("Connected to room");
         return Result.ok();
     }
 
     @PostMapping("/members")
     public Result<List<MemberVo>> listMembers(@RequestBody ListRoomMembersReqVo vo) throws InvalidAuthenticationException,
             RoomNotFoundException {
-
         Room room = roomService.getRoom(vo.getRoomId());
         if (!room.containsUser(AuthUtil.getUserId()))
             return Result.error("You are not in this room anymore, or the room has been removed");
 
+        log.info("Listed members of room");
         return Result.of(room.listMembers());
     }
 
