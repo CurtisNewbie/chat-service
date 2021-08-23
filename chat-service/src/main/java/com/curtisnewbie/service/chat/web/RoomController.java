@@ -5,6 +5,8 @@ import com.curtisnewbie.module.auth.util.AuthUtil;
 import com.curtisnewbie.service.auth.remote.exception.InvalidAuthenticationException;
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
+import com.curtisnewbie.service.chat.service.Client;
+import com.curtisnewbie.service.chat.service.ClientService;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomService;
 import com.curtisnewbie.service.chat.vo.*;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-// todo change to web socket instead (in the future :D)
+// todo fix non-atomic operations later, for now, the inconsistency seems okay, atomicity doesn't seem like a must
 
 /**
  * <p>
@@ -33,6 +35,8 @@ public class RoomController {
 
     @Autowired
     private RoomService roomService;
+    @Autowired
+    private ClientService clientService;
 
     @PostMapping("/new")
     public Result<String> createNewRoom(@RequestBody CreateRoomReqVo vo) throws InvalidAuthenticationException {
@@ -44,8 +48,10 @@ public class RoomController {
     @PostMapping("/connect")
     public Result<Void> connectToRoom(@RequestBody ConnectRoomReqVo v) throws InvalidAuthenticationException,
             RoomNotFoundException {
+        UserVo user = AuthUtil.getUser();
         Room room = roomService.getRoom(v.getRoomId());
-        room.addMember(AuthUtil.getUser());
+        Client client = clientService.getClient(user);
+        room.addMember(client);
 
         log.info("Connected to room");
         return Result.ok();
@@ -55,7 +61,8 @@ public class RoomController {
     public Result<Void> disconnectFromRoom(@RequestBody DisconnectRoomReqVo v) throws InvalidAuthenticationException,
             RoomNotFoundException {
         Room room = roomService.getRoom(v.getRoomId());
-        room.removeMember(AuthUtil.getUser());
+        Client client = clientService.getClient(AuthUtil.getUser());
+        room.removeMember(client);
 
         log.info("Disconnected from room");
         return Result.ok();

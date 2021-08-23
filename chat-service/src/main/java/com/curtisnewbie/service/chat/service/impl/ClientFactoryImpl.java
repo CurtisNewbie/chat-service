@@ -1,7 +1,8 @@
 package com.curtisnewbie.service.chat.service.impl;
 
-import com.curtisnewbie.service.chat.service.Room;
-import com.curtisnewbie.service.chat.service.RoomBuilder;
+import com.curtisnewbie.service.auth.remote.vo.UserVo;
+import com.curtisnewbie.service.chat.service.Client;
+import com.curtisnewbie.service.chat.service.ClientFactory;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,17 +13,16 @@ import javax.validation.constraints.NotNull;
  * @author yongjie.zhuang
  */
 @Component
-public class RoomBuilderImpl implements RoomBuilder {
+public class ClientFactoryImpl implements ClientFactory {
 
     @Autowired
     private RedissonClient redissonClient;
 
     @Override
-    public Room buildRoom(@NotNull String roomId) {
-        return RedisRoomProxy.builder()
-                .redisson(redissonClient)
-                .roomId(roomId)
+    public Client buildClient(@NotNull UserVo user) {
+        return RedisClientProxy.builder()
+                .redissonClient(redissonClient)
+                .user(user)
                 .build();
     }
-
 }

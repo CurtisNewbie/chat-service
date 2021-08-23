@@ -1,6 +1,7 @@
 package com.curtisnewbie.service.chat.service.impl;
 
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
+import com.curtisnewbie.service.chat.service.Client;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.util.RoomUtil;
 import com.curtisnewbie.service.chat.vo.MemberVo;
@@ -8,7 +9,10 @@ import com.curtisnewbie.service.chat.vo.MessageVo;
 import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.*;
+import org.redisson.api.RLock;
+import org.redisson.api.RMap;
+import org.redisson.api.RScoredSortedSet;
+import org.redisson.api.RedissonClient;
 import org.redisson.client.protocol.ScoredEntry;
 
 import javax.validation.constraints.NotNull;
@@ -22,6 +26,10 @@ import static com.curtisnewbie.service.chat.util.RoomUtil.getRoomLockKey;
 //todo consider somehow we can cache this room instance?
 
 /**
+ * <p>
+ * Room domain object that is backed by a redis proxy
+ * </p>
+ *
  * @author yongjie.zhuang
  */
 @Slf4j
@@ -38,7 +46,7 @@ public class RedisRoomProxy implements Room {
     }
 
     @Override
-    public void sendMessage(@NotNull UserVo user, @NotNull String msg) {
+    public long sendMessage(@NotNull UserVo user, @NotNull String msg) {
         refreshExpiration();
         RMap<Object, Object> roomMap = getRoomInfoMap();
         if (roomMap == null)
@@ -59,19 +67,24 @@ public class RedisRoomProxy implements Room {
         } finally {
             roomLock.unlock();
         }
+        return lastMsgId;
     }
 
     @Override
-    public void addMember(@NotNull UserVo userVo) {
+    public void addMember(@NotNull Client client) {
         refreshExpiration();
-        sendMessage(userVo, userVo.getUsername() + " joined the room");
-        getRoomInfoMap().put(userVo.getId(), userVo.getUsername());
+        UserVo user = client.getUser();
+        sendMessage(user, user.getUsername() + " joined the room");
+        getRoomInfoMap().put(user.getId(), user.getUsername());
+        client.addRoomId(roomId);
     }
 
     @Override
-    public void removeMember(@NotNull UserVo userVo) {
+    public void removeMember(@NotNull Client client) {
         refreshExpiration();
-        getRoomInfoMap().remove(userVo.getId());
+        UserVo user = client.getUser();
+        getRoomInfoMap().remove(user.getId());
+        client.clearRoomId();
     }
 
     @Override

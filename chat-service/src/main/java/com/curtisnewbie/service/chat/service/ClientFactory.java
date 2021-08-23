@@ -1,24 +1,25 @@
 package com.curtisnewbie.service.chat.service;
 
+import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotNull;
 
 /**
  * <p>
- * Builder of Room
+ * Factory of Client
  * </p>
  *
  * @author yongjie.zhuang
  */
 @Validated
-public interface RoomBuilder {
+public interface ClientFactory {
 
     /**
-     * Build room domain object
+     * Build Client domain object
      *
-     * @param roomId roomId
+     * @param user
      */
-    Room buildRoom(@NotNull String roomId);
+    Client buildClient(@NotNull UserVo user);
 
 }

@@ -32,6 +32,5 @@ public interface RoomService {
      * @param req  request param
      */
     Room createNewRoom(@NotNull UserVo user, @NotNull CreateRoomReqVo req);
-
 }
 

@@ -21,17 +21,17 @@ public interface Room {
     /**
      * Send message to other members in the room
      */
-    void sendMessage(@NotNull UserVo user, @NotNull String msg);
+    long sendMessage(@NotNull UserVo user, @NotNull String msg);
 
     /**
      * Add member
      */
-    void addMember(@NotNull UserVo userVo);
+    void addMember(@NotNull Client client);
 
     /**
      * Remove member
      */
-    void removeMember(@NotNull UserVo userVo);
+    void removeMember(@NotNull Client client);
 
     /**
      * List members

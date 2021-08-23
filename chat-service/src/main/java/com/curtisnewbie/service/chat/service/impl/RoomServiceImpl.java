@@ -6,7 +6,7 @@ import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.consts.RoomType;
 import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
 import com.curtisnewbie.service.chat.service.Room;
-import com.curtisnewbie.service.chat.service.RoomBuilder;
+import com.curtisnewbie.service.chat.service.RoomFactory;
 import com.curtisnewbie.service.chat.service.RoomService;
 import com.curtisnewbie.service.chat.vo.CreateRoomReqVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +26,11 @@ public class RoomServiceImpl implements RoomService {
     private RedisController redisController;
 
     @Autowired
-    private RoomBuilder roomBuilder;
+    private RoomFactory roomFactory;
 
     @Override
     public Room getRoom(@NotNull String roomId) throws RoomNotFoundException {
-        Room room = roomBuilder.buildRoom(roomId);
+        Room room = roomFactory.buildRoom(roomId);
         if (!room.exists())
             throw new RoomNotFoundException("Room is not found");
         return room;
@@ -43,7 +43,7 @@ public class RoomServiceImpl implements RoomService {
 
         // todo type is not implemented yet
 
-        Room room = roomBuilder.buildRoom(UUID.randomUUID().toString());
+        Room room = roomFactory.buildRoom(UUID.randomUUID().toString());
         room.create(user);
         room.refreshExpiration();
         return room;
