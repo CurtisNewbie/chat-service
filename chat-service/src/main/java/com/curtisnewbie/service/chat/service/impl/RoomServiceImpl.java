@@ -8,7 +8,6 @@ import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomBuilder;
 import com.curtisnewbie.service.chat.service.RoomService;
-import com.curtisnewbie.service.chat.util.RoomUtil;
 import com.curtisnewbie.service.chat.vo.CreateRoomReqVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,10 +30,10 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public Room getRoom(@NotNull String roomId) throws RoomNotFoundException {
-        if (!redisController.exists(RoomUtil.getRoomInfoMapKey(roomId)))
-            throw new RoomNotFoundException(roomId);
-
-        return roomBuilder.buildRoom(roomId);
+        Room room = roomBuilder.buildRoom(roomId);
+        if (!room.exists())
+            throw new RoomNotFoundException("Room is not found");
+        return room;
     }
 
     @Override

@@ -39,6 +39,7 @@ public class RedisRoomProxy implements Room {
 
     @Override
     public void sendMessage(@NotNull UserVo user, @NotNull String msg) {
+        refreshExpiration();
         RMap<Object, Object> roomMap = getRoomInfoMap();
         if (roomMap == null)
             throw new IllegalStateException("Room not found " + roomId);
@@ -62,16 +63,21 @@ public class RedisRoomProxy implements Room {
 
     @Override
     public void addMember(@NotNull UserVo userVo) {
+        refreshExpiration();
+        sendMessage(userVo, userVo.getUsername() + " joined the room");
         getRoomInfoMap().put(userVo.getId(), userVo.getUsername());
     }
 
     @Override
     public void removeMember(@NotNull UserVo userVo) {
+        refreshExpiration();
         getRoomInfoMap().remove(userVo.getId());
     }
 
     @Override
     public List<MemberVo> listMembers() {
+        refreshExpiration();
+
         // todo optimise this, use a map for this maybe
         List<MemberVo> members = new ArrayList<>();
         RMap<Object, Object> roomInfoMap = getRoomInfoMap();
@@ -89,6 +95,7 @@ public class RedisRoomProxy implements Room {
 
     @Override
     public PollMessageRespVo getMessagesAfter(long messageId, int limit) {
+        refreshExpiration();
         RScoredSortedSet<MessageVo> sortedMessageMap = getSortedMessageMap();
         Collection<ScoredEntry<MessageVo>> scoredEntries = sortedMessageMap.entryRange(messageId, false,
                 Double.POSITIVE_INFINITY, false, 0, limit);
@@ -109,11 +116,12 @@ public class RedisRoomProxy implements Room {
 
     @Override
     public PollMessageRespVo getLastMessage() {
+        refreshExpiration();
         RScoredSortedSet<MessageVo> sortedMessageMap = getSortedMessageMap();
         MessageVo messageVo = sortedMessageMap.last();
         return PollMessageRespVo.builder()
                 .hasMore(false)
-                .messages(Collections.singletonList(messageVo))
+                .messages(messageVo != null ? Collections.singletonList(messageVo) : Collections.emptyList())
                 .build();
     }
 
@@ -139,6 +147,8 @@ public class RedisRoomProxy implements Room {
                 return;
 
             getRoomInfoMap().put(createdBy.getId(), createdBy.getUsername());
+            sendMessage(createdBy, createdBy.getUsername() + " joined the room");
+            refreshExpiration();
         } finally {
             roomLock.unlock();
         }
@@ -147,6 +157,11 @@ public class RedisRoomProxy implements Room {
     @Override
     public boolean containsUser(int userId) {
         return getRoomInfoMap().containsKey(userId);
+    }
+
+    @Override
+    public boolean exists() {
+        return getRoomInfoMap().isExists();
     }
 
     /**

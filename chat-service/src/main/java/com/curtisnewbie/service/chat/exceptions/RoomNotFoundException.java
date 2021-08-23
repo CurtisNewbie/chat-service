@@ -1,11 +1,13 @@
 package com.curtisnewbie.service.chat.exceptions;
 
-import lombok.Data;
+import com.curtisnewbie.common.exceptions.MsgEmbeddedException;
 
 /**
+ * Room is not found
+ *
  * @author yongjie.zhuang
  */
-public class RoomNotFoundException extends Exception {
+public class RoomNotFoundException extends MsgEmbeddedException {
 
     public RoomNotFoundException() {
     }
@@ -18,11 +20,4 @@ public class RoomNotFoundException extends Exception {
         super(message, cause);
     }
 
-    public RoomNotFoundException(Throwable cause) {
-        super(cause);
-    }
-
-    public RoomNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

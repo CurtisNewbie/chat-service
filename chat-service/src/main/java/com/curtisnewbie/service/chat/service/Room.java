@@ -70,4 +70,9 @@ public interface Room {
      * Check if the room contains specified user
      */
     boolean containsUser(int userId);
+
+    /**
+     * Check if the room exists
+     */
+    boolean exists();
 }

@@ -2,9 +2,7 @@ package com.curtisnewbie.service.chat.service;
 
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
-import com.curtisnewbie.service.chat.exceptions.UserNotInRoomException;
 import com.curtisnewbie.service.chat.vo.CreateRoomReqVo;
-import com.curtisnewbie.service.chat.vo.MemberVo;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotNull;
@@ -23,6 +21,7 @@ public interface RoomService {
      * Get room
      *
      * @param roomId roomId
+     * @throws RoomNotFoundException if the room doesn't exists
      */
     Room getRoom(@NotNull String roomId) throws RoomNotFoundException;
 
