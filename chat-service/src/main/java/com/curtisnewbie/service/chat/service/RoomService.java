@@ -1,6 +1,5 @@
 package com.curtisnewbie.service.chat.service;
 
-import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
 import com.curtisnewbie.service.chat.vo.CreateRoomReqVo;
 import org.springframework.validation.annotation.Validated;
@@ -28,9 +27,9 @@ public interface RoomService {
     /**
      * Create a new room
      *
-     * @param user user
-     * @param req  request param
+     * @param client the user
+     * @param req    request param
      */
-    Room createNewRoom(@NotNull UserVo user, @NotNull CreateRoomReqVo req);
+    Room createNewRoom(@NotNull Client client, @NotNull CreateRoomReqVo req);
 }
 

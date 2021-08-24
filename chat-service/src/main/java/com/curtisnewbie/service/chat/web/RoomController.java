@@ -40,7 +40,8 @@ public class RoomController {
 
     @PostMapping("/new")
     public Result<String> createNewRoom(@RequestBody CreateRoomReqVo vo) throws InvalidAuthenticationException {
-        Room room = roomService.createNewRoom(AuthUtil.getUser(), vo);
+        Client client = clientService.getClient(AuthUtil.getUser());
+        Room room = roomService.createNewRoom(client, vo);
         log.info("Room created");
         return Result.of(room.getRoomId());
     }
@@ -75,7 +76,7 @@ public class RoomController {
         if (!room.containsUser(AuthUtil.getUserId()))
             return Result.error("You are not in this room anymore, or the room has been removed");
 
-        log.info("Listed members of room");
+//        log.info("Listed members of room");
         return Result.of(room.listMembers());
     }
 
@@ -103,7 +104,7 @@ public class RoomController {
             return Result.error("You are not in this room anymore, or the room has been removed");
 
         room.sendMessage(user, vo.getMessage());
-        log.info("Sent messages");
+//        log.info("Sent messages");
         return Result.ok();
     }
 

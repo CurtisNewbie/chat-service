@@ -66,8 +66,8 @@ public class RoomRefreshExpirationDecorator implements Room {
     }
 
     @Override
-    public void create(@NotNull UserVo createdBy) {
-        room.create(createdBy);
+    public void create(@NotNull Client client) {
+        room.create(client);
         room.refreshExpiration();
     }
 

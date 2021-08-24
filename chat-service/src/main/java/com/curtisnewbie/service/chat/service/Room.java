@@ -59,7 +59,7 @@ public interface Room {
     /**
      * Create this room (should only called when this room doesn't exists)
      */
-    void create(@NotNull UserVo createdBy);
+    void create(@NotNull Client client);
 
     /**
      * Check if the room contains specified user

@@ -1,5 +1,6 @@
 package com.curtisnewbie.service.chat.config;
 
+import com.curtisnewbie.common.util.JsonUtils;
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.service.ClientService;
 import com.curtisnewbie.service.chat.service.Room;
@@ -7,6 +8,7 @@ import com.curtisnewbie.service.chat.service.RoomService;
 import com.curtisnewbie.service.chat.vo.MessageVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -52,7 +54,7 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession currSession, TextMessage msgIn) throws Exception {
-        super.handleTextMessage(currSession, msgIn);
+        MessageVo receivedMessage = JsonUtils.readValueAsObject(msgIn.getPayload(), MessageVo.class);
 
         UserVo user = getPrincipal(currSession);
 
@@ -69,32 +71,33 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
         TextMessage msgToSend = new TextMessage(
                 writeValueAsString(
                         MessageVo.builder()
-                                .message(msgIn.getPayload())
+                                .message(receivedMessage.getMessage())
                                 .messageId(msgId)
                                 .sender(user.getUsername())
                                 .build()
                 )
         );
 
-        // send messages to these members
-        try {
-            currSession.sendMessage(msgToSend);
-        } catch (IOException e) {
-            log.warn("Failed to send message", e);
-        }
+        writeMessage(currSession, msgToSend);
         room.listMembers().forEach(m -> {
             WebSocketSession wss = sessions.get(m.getId());
             if (wss != null && wss.isOpen()) {
-                try {
-                    wss.sendMessage(msgToSend);
-                } catch (IOException e) {
-                    log.warn("Failed to send message", e);
-                }
+                writeMessage(wss, msgToSend);
             }
         });
     }
 
     private UserVo getPrincipal(WebSocketSession session) {
-        return (UserVo) session.getPrincipal();
+        return (UserVo) ((UsernamePasswordAuthenticationToken) session.getPrincipal()).getPrincipal();
+    }
+
+    private void writeMessage(WebSocketSession session, TextMessage msg) {
+        // send messages to these members
+        try {
+            session.sendMessage(msg);
+        } catch (IOException e) {
+            log.warn("Failed to send message", e);
+        }
+
     }
 }

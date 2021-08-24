@@ -14,11 +14,13 @@ import { buildApiPath } from './util/api-util';
 export class UserService {
   private userInfo: UserInfo = null;
   private roleSubject = new Subject<string>();
+  private usernameSubject = new Subject<string>();
   private isLoggedInSubject = new Subject<boolean>();
 
   roleObservable: Observable<string> = this.roleSubject.asObservable();
   isLoggedInObservable: Observable<boolean> =
     this.isLoggedInSubject.asObservable();
+  usernameObservable: Observable<string> = this.usernameSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -73,6 +75,7 @@ export class UserService {
             this.userInfo = resp.data;
             this.notifyRole(this.userInfo.role);
             this.notifyLoginStatus(true);
+            this.usernameSubject.next(this.userInfo.username);
           } else {
             this.notifi.toast('Please login first');
             this.nav.navigateTo(NavType.LOGIN_PAGE);

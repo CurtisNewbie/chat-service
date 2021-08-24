@@ -12,6 +12,9 @@ import { NotificationService } from '../notification.service';
 import { Message, PollMessageResponse } from '../models/Message';
 import { UserService } from '../user.service';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { SocketService } from '../socket.service';
+import { WebSocketSubject } from 'rxjs/webSocket';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-chat-room',
@@ -24,9 +27,13 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   isConnected: boolean = false;
   members: Member[] = [];
   messages: Message[] = [];
-  msgIdSet: Set<number> = new Set();
-  pollMsgInterval = null;
-  pollMembersInterval = null;
+  username: string = null;
+
+  private msgIdSet: Set<number> = new Set();
+  private pollMsgInterval = null;
+  private pollMembersInterval = null;
+  private messageWebSocketSubscrtiption: Subscription = null;
+  private messageWebSocketSubject: WebSocketSubject<Message> = null;
 
   @ViewChild('virtualScroll')
   virtualScroll: CdkVirtualScrollViewport;
@@ -34,13 +41,22 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   constructor(
     private roomService: RoomService,
     private notifi: NotificationService,
-    private userService: UserService
+    private userService: UserService,
+    private websocketServices: SocketService
   ) {}
 
   ngOnInit(): void {
-    // poll messages for every 0.5 seconds
-    this.pollMsgInterval = setInterval(() => this.pollMessages(), 1000);
-    this.pollMembersInterval = setInterval(() => this.pollMembers(), 3000);
+    // poll messages and members for every 10 seconds
+    this.pollMsgInterval = setInterval(() => this.pollMessages(), 10000);
+    this.pollMembersInterval = setInterval(() => this.pollMembers(), 10000);
+    if (!this.userService.hasUserInfo()) {
+      this.userService.fetchUserInfo();
+    }
+    this.userService.usernameObservable.subscribe({
+      next: (un) => {
+        this.username = un;
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -61,6 +77,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           this.roomId = resp.data;
           this.notifi.toast(`Connected to room: ${this.roomId}`);
           this.isConnected = true;
+          this.openMessageWebSocket();
           this.pollMembers();
         },
       });
@@ -82,6 +99,10 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           this.clearIntervals();
           this.messages = [];
           this.msgIdSet.clear();
+          this.messageWebSocketSubscrtiption.unsubscribe();
+          this.messageWebSocketSubject.unsubscribe();
+          this.messageWebSocketSubject = null;
+          this.messageWebSocketSubscrtiption = null;
         },
       });
   }
@@ -103,8 +124,31 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
         complete: () => {
           this.notifi.toast(`Connected to room: ${this.roomId}`);
           this.isConnected = true;
+          this.openMessageWebSocket();
         },
       });
+  }
+
+  openMessageWebSocket() {
+    console.log('Openning websocket for messages');
+    this.messageWebSocketSubject =
+      this.websocketServices.openMessageWebSocket();
+    this.messageWebSocketSubscrtiption = this.messageWebSocketSubject.subscribe(
+      {
+        next: (msg) => {
+          console.log('wss', msg);
+          if (msg.messageId != null && !this.msgIdSet.has(msg.messageId)) {
+            this.messages.push(msg);
+            this.msgIdSet.add(msg.messageId);
+            this.messages = [...this.messages];
+            // this.virtualScroll.scrollToIndex(this.messages.length - 1);
+          }
+        },
+        complete: () => {
+          this.messageWebSocketSubscrtiption.unsubscribe();
+        },
+      }
+    );
   }
 
   pollMessages() {
@@ -133,7 +177,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           }
           if (changed) {
             this.messages = [...this.messages];
-            this.virtualScroll.scrollToIndex(0);
+            // this.virtualScroll.scrollToIndex(this.messages.length - 1);
           }
         },
       });
@@ -159,17 +203,30 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   sendMsg() {
     if (!this.isConnected) return;
     if (!this.currMsg) return;
+    if (
+      this.messageWebSocketSubject == null ||
+      this.messageWebSocketSubject.isStopped
+    ) {
+      return;
+    }
 
-    this.roomService
-      .sendMessage({
-        roomId: this.roomId,
-        message: this.currMsg,
-      })
-      .subscribe({
-        complete: () => {
-          this.currMsg = null;
-        },
-      });
+    this.messageWebSocketSubject.next({
+      sender: null,
+      message: this.currMsg,
+      messageId: null,
+    });
+    this.currMsg = null;
+
+    // this.roomService
+    //   .sendMessage({
+    //     roomId: this.roomId,
+    //     message: this.currMsg,
+    //   })
+    //   .subscribe({
+    //     complete: () => {
+    //       this.currMsg = null;
+    //     },
+    //   });
   }
 
   /**
@@ -184,8 +241,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   }
 
   sentByCurrUser(msg: Message): boolean {
-    if (!this.userService.hasUserInfo()) return false;
-    return msg.sender === this.userService.getUserInfo().username;
+    return msg.sender === this.username;
   }
 
   msgInputKeyPressed(event: any): void {

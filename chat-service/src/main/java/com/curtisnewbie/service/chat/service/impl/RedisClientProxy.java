@@ -36,8 +36,7 @@ public class RedisClientProxy implements Client {
     @Override
     public void clearRoomId() {
         RMap<Object, Object> map = getClientMap();
-        if (map.isExists())
-            map.remove(ROOM_ID_FIELD);
+        map.remove(ROOM_ID_FIELD);
     }
 
     @Override

@@ -143,7 +143,7 @@ public class RedisRoomProxy implements Room {
     }
 
     @Override
-    public void create(@NotNull UserVo createdBy) {
+    public void create(@NotNull Client client) {
         RLock roomLock = getRoomLock();
         try {
             while (!tryTimeoutLock(roomLock))
@@ -152,7 +152,9 @@ public class RedisRoomProxy implements Room {
             if (getRoomInfoMap().isExists())
                 return;
 
+            UserVo createdBy = client.getUser();
             getRoomInfoMap().put(createdBy.getId(), createdBy.getUsername());
+            client.addRoomId(roomId);
             sendMessage(createdBy, createdBy.getUsername() + " joined the room");
         } finally {
             roomLock.unlock();

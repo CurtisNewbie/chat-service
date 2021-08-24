@@ -2,9 +2,9 @@ package com.curtisnewbie.service.chat.service.impl;
 
 import com.curtisnewbie.common.util.EnumUtils;
 import com.curtisnewbie.module.redisutil.RedisController;
-import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.consts.RoomType;
 import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
+import com.curtisnewbie.service.chat.service.Client;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomFactory;
 import com.curtisnewbie.service.chat.service.RoomService;
@@ -37,14 +37,14 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Room createNewRoom(@NotNull UserVo user, @NotNull CreateRoomReqVo req) {
+    public Room createNewRoom(@NotNull Client client, @NotNull CreateRoomReqVo req) {
         RoomType type = EnumUtils.parse(req.getRoomType(), RoomType.class);
         Objects.requireNonNull(type, "Unable to parse room_type value, value illegal");
 
         // todo type is not implemented yet
 
         Room room = roomFactory.buildRoom(UUID.randomUUID().toString());
-        room.create(user);
+        room.create(client);
         return room;
     }
 }
