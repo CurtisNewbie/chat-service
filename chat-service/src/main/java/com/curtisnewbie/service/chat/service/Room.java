@@ -58,7 +58,7 @@ public interface Room {
     String getRoomId();
 
     /**
-     * Create this room (should only called when this room doesn't exists)
+     * Create this room
      */
     void create(@NotNull Client client);
 
@@ -78,4 +78,9 @@ public interface Room {
      * @return create date or null if the room doesn't exist
      */
     Date getCreateDate();
+
+    /**
+     * Delete this room
+     */
+    void delete();
 }

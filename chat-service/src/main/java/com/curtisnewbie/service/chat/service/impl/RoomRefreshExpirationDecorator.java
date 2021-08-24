@@ -90,6 +90,11 @@ public class RoomRefreshExpirationDecorator implements Room {
         return room.getCreateDate();
     }
 
+    @Override
+    public void delete() {
+        room.delete();
+    }
+
     /**
      * Decorate given Room
      */

@@ -173,6 +173,12 @@ public class RedisRoomProxy implements Room {
         return (Date) roomInfoMap.get(CREATE_DATE_FIELD);
     }
 
+    @Override
+    public void delete() {
+        getSortedMessageMap().deleteAsync();
+        getRoomInfoMap().deleteAsync();
+    }
+
     /**
      * Get lock for the room
      */
@@ -221,22 +227,22 @@ public class RedisRoomProxy implements Room {
     /**
      * Get lock key for the room
      */
-    private static String getRoomLockKey(String roomId) {
-        return "room:lock:" + roomId;
+    public static final String getRoomLockKey(String roomId) {
+        return "chat:room:lock:" + roomId;
     }
 
     /**
      * Get key for zset for messages of the room
      */
-    private static String getMsgScoredMapKey(String roomId) {
-        return "room:message:" + roomId;
+    public static final String getMsgScoredMapKey(String roomId) {
+        return "chat:room:message:" + roomId;
     }
 
     /**
      * Get map for information of the room
      */
-    private static String getRoomInfoMapKey(String roomId) {
-        return "room:info:" + roomId;
+    public static final String getRoomInfoMapKey(String roomId) {
+        return "chat:room:info:" + roomId;
     }
 
 }
