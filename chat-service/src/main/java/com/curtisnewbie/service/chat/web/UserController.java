@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("${web.base-path}/user")
 public class UserController {
 
-    private static final int PASSWORD_LENGTH = 6;
-
     @DubboReference(lazy = true)
     private RemoteUserService userService;
 
