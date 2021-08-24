@@ -4,6 +4,7 @@ import {
   ViewChild,
   ElementRef,
   OnDestroy,
+  AfterViewChecked,
 } from '@angular/core';
 import { Member } from '../models/Member';
 import { RoomService } from '../room.service';
@@ -14,14 +15,14 @@ import { UserService } from '../user.service';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { SocketService } from '../socket.service';
 import { WebSocketSubject } from 'rxjs/webSocket';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-chat-room',
   templateUrl: './chat-room.component.html',
   styleUrls: ['./chat-room.component.css'],
 })
-export class ChatRoomComponent implements OnInit, OnDestroy {
+export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
   roomId: string = null;
   currMsg: string = null;
   isConnected: boolean = false;
@@ -62,6 +63,10 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.clearIntervals();
     this.closeMessageWebSocket();
+  }
+
+  ngAfterViewChecked(): void {
+    this.scrollToBottom();
   }
 
   /**
@@ -140,6 +145,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
             this.msgIdSet.add(msg.messageId);
             this.messages = [...this.messages];
             // this.virtualScroll.scrollToIndex(this.messages.length - 1);
+            // this.scrollToBottom();
           }
         },
         complete: () => {
@@ -175,7 +181,12 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           }
           if (changed) {
             this.messages = [...this.messages];
+
             // this.virtualScroll.scrollToIndex(this.messages.length - 1);
+
+            // this.scrollToBottom();
+            // let offset = this.virtualScroll.measureScrollOffset('end');
+            // this.virtualScroll.scrollToOffset(offset);
           }
         },
       });
@@ -256,5 +267,11 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     this.messageWebSocketSubject.unsubscribe();
     this.messageWebSocketSubject = null;
     this.messageWebSocketSubscrtiption = null;
+  }
+
+  scrollToBottom(): void {
+    // let offset = this.virtualScroll.measureScrollOffset('end');
+    // this.virtualScroll.scrollToOffset(offset);
+    this.virtualScroll.scrollToIndex(this.messages.length - 1);
   }
 }
