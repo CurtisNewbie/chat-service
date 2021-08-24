@@ -34,4 +34,4 @@ build/
 
 cert/
 *.p12
-
+static/
