@@ -103,6 +103,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
           this.isConnected = false;
           this.clearIntervals();
           this.messages = [];
+          this.members = [];
           this.msgIdSet.clear();
           this.closeMessageWebSocket();
           this.notifi.toast(`room disconnected`);
