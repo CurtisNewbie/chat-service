@@ -6,6 +6,8 @@ import com.curtisnewbie.service.chat.service.ClientService;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomService;
 import com.curtisnewbie.service.chat.vo.MessageVo;
+import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,6 +46,13 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         UserVo user = getPrincipal(session);
         log.info("User {} connected to web socket for messages", user.getUsername());
+
+        // send the last message immediately, if there is one
+        String roomId = clientService.getClient(user).getRoomId();
+        Room room = roomService.getRoom(roomId);
+        PollMessageRespVo messages = room.getLastMessage();
+        if (!messages.getMessages().isEmpty())
+            writeMessage(session, buildMessage(messages.getMessages().get(0)));
     }
 
     @Override
@@ -68,14 +77,12 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
         final long msgId = room.sendMessage(user, msgIn.getPayload());
 
         // construct the actual message with information such as sender and messageId
-        TextMessage msgToSend = new TextMessage(
-                writeValueAsString(
-                        MessageVo.builder()
-                                .message(receivedMessage.getMessage())
-                                .messageId(msgId)
-                                .sender(user.getUsername())
-                                .build()
-                )
+        TextMessage msgToSend = buildMessage(
+                MessageVo.builder()
+                        .message(receivedMessage.getMessage())
+                        .messageId(msgId)
+                        .sender(user.getUsername())
+                        .build()
         );
 
         writeMessage(currSession, msgToSend);
@@ -98,6 +105,13 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
         } catch (IOException e) {
             log.warn("Failed to send message", e);
         }
-
     }
+
+    private TextMessage buildMessage(MessageVo messageVo) throws JsonProcessingException {
+        return new TextMessage(
+                writeValueAsString(
+                        messageVo
+                ));
+    }
+
 }
