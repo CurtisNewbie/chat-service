@@ -7,6 +7,7 @@ import com.curtisnewbie.service.chat.vo.MemberVo;
 import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -81,6 +82,12 @@ public class RoomRefreshExpirationDecorator implements Room {
     public boolean exists() {
         room.refreshExpiration();
         return room.exists();
+    }
+
+    @Override
+    public Date getCreateDate() {
+        room.refreshExpiration();
+        return room.getCreateDate();
     }
 
     /**

@@ -6,6 +6,7 @@ import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -70,4 +71,11 @@ public interface Room {
      * Check if the room exists
      */
     boolean exists();
+
+    /**
+     * Get create date
+     *
+     * @return create date or null if the room doesn't exist
+     */
+    Date getCreateDate();
 }

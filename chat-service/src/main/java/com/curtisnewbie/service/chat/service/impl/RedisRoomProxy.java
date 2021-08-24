@@ -19,8 +19,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-//todo consider somehow we can cache this room instance?
-
 /**
  * <p>
  * Room domain object that is backed by a redis proxy
@@ -32,6 +30,7 @@ import java.util.stream.Collectors;
 @Builder
 public class RedisRoomProxy implements Room {
 
+    private static final String CREATE_DATE_FIELD = "created-at";
     private static final String MESSAGE_ID_FIELD = "message-id";
     private final RedissonClient redisson;
     private final String roomId;
@@ -68,9 +67,9 @@ public class RedisRoomProxy implements Room {
     @Override
     public void addMember(@NotNull Client client) {
         UserVo user = client.getUser();
-        sendMessage(user, user.getUsername() + " joined the room");
         getRoomInfoMap().put(user.getId(), user.getUsername());
         client.addRoomId(roomId);
+        sendMessage(user, "Welcome! " + user.getUsername() + " just joined the room");
     }
 
     @Override
@@ -82,10 +81,8 @@ public class RedisRoomProxy implements Room {
 
     @Override
     public List<MemberVo> listMembers() {
-
-        // todo optimise this, use a map for this maybe
         List<MemberVo> members = new ArrayList<>();
-        RMap<Object, Object> roomInfoMap = getRoomInfoMap();
+        Map<Object, Object> roomInfoMap = getRoomInfoMap().readAllMap();
         Set<Object> keys = roomInfoMap.keySet();
         for (Object key : keys) {
             if (!Objects.equals(key, MESSAGE_ID_FIELD)) {
@@ -149,9 +146,10 @@ public class RedisRoomProxy implements Room {
                 return;
 
             UserVo createdBy = client.getUser();
-            getRoomInfoMap().put(createdBy.getId(), createdBy.getUsername());
+            RMap<Object, Object> roomInfoMap = getRoomInfoMap();
+            roomInfoMap.put(createdBy.getId(), createdBy.getUsername());
+            roomInfoMap.put(CREATE_DATE_FIELD, new Date());
             client.addRoomId(roomId);
-            sendMessage(createdBy, createdBy.getUsername() + " joined the room");
         } finally {
             roomLock.unlock();
         }
@@ -165,6 +163,14 @@ public class RedisRoomProxy implements Room {
     @Override
     public boolean exists() {
         return getRoomInfoMap().isExists();
+    }
+
+    @Override
+    public Date getCreateDate() {
+        RMap<Object, Object> roomInfoMap = getRoomInfoMap();
+        if (!roomInfoMap.isExists())
+            return null;
+        return (Date) roomInfoMap.get(CREATE_DATE_FIELD);
     }
 
     /**
