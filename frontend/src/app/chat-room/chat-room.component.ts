@@ -145,8 +145,6 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
             this.messages.push(msg);
             this.msgIdSet.add(msg.messageId);
             this.messages = [...this.messages];
-            // this.virtualScroll.scrollToIndex(this.messages.length - 1);
-            // this.scrollToBottom();
           }
         },
         complete: () => {
@@ -182,12 +180,6 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
           }
           if (changed) {
             this.messages = [...this.messages];
-
-            // this.virtualScroll.scrollToIndex(this.messages.length - 1);
-
-            // this.scrollToBottom();
-            // let offset = this.virtualScroll.measureScrollOffset('end');
-            // this.virtualScroll.scrollToOffset(offset);
           }
         },
       });
@@ -271,8 +263,6 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   scrollToBottom(): void {
-    // let offset = this.virtualScroll.measureScrollOffset('end');
-    // this.virtualScroll.scrollToOffset(offset);
     this.virtualScroll.scrollToIndex(this.messages.length - 1);
   }
 }
