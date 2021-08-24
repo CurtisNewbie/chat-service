@@ -19,7 +19,7 @@ import java.util.Arrays;
  * Mock bean for {@link AuthProvider}, only active under 'dev' profile for development.
  * </p>
  * <p>
- * This bean is used for development, such that the auth-service and nacos doesn't need to startup for it to work.
+ * This bean is used for development, such that the auth-service doesn't need to startup for it to work.
  * </p>
  *
  * @author yongjie.zhuang

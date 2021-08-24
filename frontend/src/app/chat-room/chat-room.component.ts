@@ -1,14 +1,6 @@
-import {
-  Component,
-  OnInit,
-  ViewChild,
-  ElementRef,
-  OnDestroy,
-  AfterViewChecked,
-} from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Member } from '../models/Member';
 import { RoomService } from '../room.service';
-import { RoomType } from '../models/Room';
 import { NotificationService } from '../notification.service';
 import { Message, PollMessageResponse } from '../models/Message';
 import { UserService } from '../user.service';
@@ -16,6 +8,7 @@ import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { SocketService } from '../socket.service';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import { Subscription } from 'rxjs';
+import { NavigationService, NavType } from '../navigation.service';
 
 @Component({
   selector: 'app-chat-room',
@@ -25,7 +18,6 @@ import { Subscription } from 'rxjs';
 export class ChatRoomComponent implements OnInit, OnDestroy {
   roomId: string = null;
   currMsg: string = null;
-  isConnected: boolean = false;
   members: Member[] = [];
   messages: Message[] = [];
   username: string = null;
@@ -43,45 +35,53 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     private roomService: RoomService,
     private notifi: NotificationService,
     private userService: UserService,
-    private websocketServices: SocketService
+    private websocketServices: SocketService,
+    private nav: NavigationService
   ) {}
 
   ngOnInit(): void {
-    // poll messages and members for every 10 seconds
-    this.pollMembersInterval = setInterval(() => this.pollMembers(), 10000);
+    // get name of current user
     if (!this.userService.hasUserInfo()) {
       this.userService.fetchUserInfo();
+    } else {
+      this.username = this.userService.getUserInfo().username;
     }
     this.userService.usernameObservable.subscribe({
       next: (un) => {
         this.username = un;
       },
     });
+
+    // page refresh (e.g., F5)
+    let isConnected = this.roomService.isConnected;
+    if (!isConnected && !this.roomService.roomId) {
+      this.nav.navigateTo(NavType.ROOM_LIST);
+      return;
+    }
+
+    // we have roomId, but we are not connected yet
+    this.roomId = this.roomService.roomId;
+    if (!isConnected) {
+      this.roomService.connectRoom({ roomId: this.roomId }).subscribe({
+        complete: () => {
+          // once we enter the room, we open websocket
+          this.openMessageWebSocket();
+          this.pollMembers();
+        },
+      });
+    } else {
+      // we are in the room already, open the webscoket
+      this.openMessageWebSocket();
+      this.pollMembers();
+    }
+
+    // poll members for every 10 seconds
+    this.pollMembersInterval = setInterval(() => this.pollMembers(), 10000);
   }
 
   ngOnDestroy(): void {
     this.clearIntervals();
     this.closeMessageWebSocket();
-  }
-
-  /**
-   * Create new room
-   */
-  createRoom() {
-    this.roomService
-      .createNewRoom({
-        // todo this part isn't implemented yet
-        roomType: RoomType.PRIVATE,
-      })
-      .subscribe({
-        next: (resp) => {
-          this.roomId = resp.data;
-          this.notifi.toast(`Connected to room: ${this.roomId}`);
-          this.isConnected = true;
-          this.openMessageWebSocket();
-          this.pollMembers();
-        },
-      });
   }
 
   /**
@@ -95,41 +95,20 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       .subscribe({
         complete: () => {
           this.roomId = null;
-          this.isConnected = false;
           this.clearIntervals();
           this.messages = [];
           this.members = [];
           this.msgIdSet.clear();
           this.closeMessageWebSocket();
-          this.notifi.toast(`room disconnected`);
-        },
-      });
-  }
-
-  /**
-   * Connect to the chat room
-   */
-  connectRoom() {
-    if (!this.roomId) {
-      this.notifi.toast('Please create or connect to a room first');
-      return;
-    }
-
-    this.roomService
-      .connectRoom({
-        roomId: this.roomId,
-      })
-      .subscribe({
-        complete: () => {
-          this.notifi.toast(`Connected to room: ${this.roomId}`);
-          this.isConnected = true;
-          this.openMessageWebSocket();
-          this.pollMembers();
+          this.notifi.toast(`Room disconnected`);
+          this.nav.navigateTo(NavType.ROOM_LIST);
         },
       });
   }
 
   openMessageWebSocket() {
+    if (!this.roomId) return;
+
     console.log('Connecting websocket for messages');
     this.messageWebSocketSubject =
       this.websocketServices.openMessageWebSocket();
@@ -158,7 +137,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   }
 
   pollMessages() {
-    if (!this.isConnected) return;
+    if (!this.roomId) return;
 
     let lastId = null;
     if (this.messages.length > 0)
@@ -190,7 +169,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   }
 
   pollMembers(): void {
-    if (!this.isConnected) return;
+    if (!this.roomId) return;
 
     this.roomService
       .listMembers({
@@ -207,7 +186,6 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
    * Send a message
    */
   sendMsg() {
-    if (!this.isConnected) return;
     if (!this.currMsg) return;
     if (
       this.messageWebSocketSubject == null ||

@@ -15,4 +15,9 @@ public class CreateRoomReqVo {
      */
     private Integer roomType;
 
+    /**
+     * New room's name
+     */
+    private String roomName;
+
 }

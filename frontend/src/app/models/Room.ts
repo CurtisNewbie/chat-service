@@ -13,6 +13,11 @@ export interface CreateRoomRequest {
    * Room type
    */
   roomType: RoomType | number;
+
+  /**
+   * New room's name
+   */
+  roomName: string;
 }
 
 export enum RoomType {
@@ -25,4 +30,12 @@ export enum RoomType {
 export interface ListRoomMemberRequest {
   /** Room's id */
   roomId: string;
+}
+
+export interface Room {
+  /** Room's id */
+  roomId: string;
+
+  /** Room's name */
+  roomName: string;
 }

@@ -1,11 +1,13 @@
 package com.curtisnewbie.service.chat.service.impl;
 
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
+import com.curtisnewbie.service.chat.consts.RoomType;
 import com.curtisnewbie.service.chat.service.Client;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.vo.MemberVo;
 import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -67,9 +69,15 @@ public class RoomRefreshExpirationDecorator implements Room {
     }
 
     @Override
-    public void create(@NotNull Client client) {
-        room.create(client);
+    public void create(@NotNull Client client, @NotNull RoomType roomType, @NotEmpty String roomName) {
+        room.create(client, roomType, roomName);
         room.refreshExpiration();
+    }
+
+    @Override
+    public RoomType getRoomType() {
+        room.refreshExpiration();
+        return room.getRoomType();
     }
 
     @Override

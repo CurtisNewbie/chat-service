@@ -1,6 +1,8 @@
 package com.curtisnewbie.service.chat.service.impl;
 
+import com.curtisnewbie.common.util.EnumUtils;
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
+import com.curtisnewbie.service.chat.consts.RoomType;
 import com.curtisnewbie.service.chat.service.Client;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.vo.MemberVo;
@@ -14,6 +16,7 @@ import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.protocol.ScoredEntry;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +35,8 @@ public class RedisRoomProxy implements Room {
 
     private static final String CREATE_DATE_FIELD = "created-at";
     private static final String MESSAGE_ID_FIELD = "message-id";
+    private static final String ROOM_TYPE_FIELD = "room-type";
+    private static final String ROOM_NAME_FIELD = "room-name";
     private final RedissonClient redisson;
     private final String roomId;
 
@@ -67,7 +72,7 @@ public class RedisRoomProxy implements Room {
     @Override
     public void addMember(@NotNull Client client) {
         UserVo user = client.getUser();
-        getRoomInfoMap().put(user.getId(), user.getUsername());
+        getRoomInfoMap().fastPut(user.getId(), user.getUsername());
         client.addRoomId(roomId);
         sendMessage(user, "Welcome! " + user.getUsername() + " just joined the room");
     }
@@ -85,7 +90,10 @@ public class RedisRoomProxy implements Room {
         Map<Object, Object> roomInfoMap = getRoomInfoMap().readAllMap();
         Set<Object> keys = roomInfoMap.keySet();
         for (Object key : keys) {
-            if (!Objects.equals(key, MESSAGE_ID_FIELD) && !Objects.equals(key, CREATE_DATE_FIELD)) {
+            if (!Objects.equals(key, MESSAGE_ID_FIELD)
+                    && !Objects.equals(key, CREATE_DATE_FIELD)
+                    && !Objects.equals(key, ROOM_TYPE_FIELD)
+                    && !Objects.equals(key, ROOM_NAME_FIELD)) {
                 members.add(MemberVo.builder()
                         .id((int) key)
                         .username((String) roomInfoMap.get(key))
@@ -136,7 +144,7 @@ public class RedisRoomProxy implements Room {
     }
 
     @Override
-    public void create(@NotNull Client client) {
+    public void create(@NotNull Client client, @NotNull RoomType roomType, @NotEmpty String roomName) {
         RLock roomLock = getRoomLock();
         try {
             while (!tryTimeoutLock(roomLock))
@@ -146,13 +154,23 @@ public class RedisRoomProxy implements Room {
                 return;
 
             UserVo createdBy = client.getUser();
-            RMap<Object, Object> roomInfoMap = getRoomInfoMap();
-            roomInfoMap.put(createdBy.getId(), createdBy.getUsername());
-            roomInfoMap.put(CREATE_DATE_FIELD, new Date());
             client.addRoomId(roomId);
+            RMap<Object, Object> roomInfoMap = getRoomInfoMap();
+            roomInfoMap.fastPut(createdBy.getId(), createdBy.getUsername());
+            roomInfoMap.fastPut(ROOM_TYPE_FIELD, roomType.getValue());
+            roomInfoMap.fastPut(CREATE_DATE_FIELD, new Date());
+            roomInfoMap.fastPut(ROOM_NAME_FIELD, roomName);
         } finally {
             roomLock.unlock();
         }
+    }
+
+    @Override
+    public RoomType getRoomType() {
+        Integer v = (Integer) getRoomInfoMap().get(ROOM_TYPE_FIELD);
+        if (v == null)
+            return null;
+        return EnumUtils.parse(v, RoomType.class);
     }
 
     @Override

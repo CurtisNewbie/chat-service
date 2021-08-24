@@ -36,12 +36,12 @@ public class RedisClientProxy implements Client {
     @Override
     public void clearRoomId() {
         RMap<Object, Object> map = getClientMap();
-        map.remove(ROOM_ID_FIELD);
+        map.fastRemove(ROOM_ID_FIELD);
     }
 
     @Override
     public void addRoomId(String roomId) {
-        getClientMap().put(ROOM_ID_FIELD, roomId);
+        getClientMap().fastPut(ROOM_ID_FIELD, roomId);
     }
 
     @Override

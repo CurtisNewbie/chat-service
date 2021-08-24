@@ -1,5 +1,6 @@
 package com.curtisnewbie.service.chat.web;
 
+import com.curtisnewbie.common.vo.PagingVo;
 import com.curtisnewbie.common.vo.Result;
 import com.curtisnewbie.module.auth.util.AuthUtil;
 import com.curtisnewbie.service.auth.remote.exception.InvalidAuthenticationException;
@@ -76,7 +77,6 @@ public class RoomController {
         if (!room.containsUser(AuthUtil.getUserId()))
             return Result.error("You are not in this room anymore, or the room has been removed");
 
-//        log.info("Listed members of room");
         return Result.of(room.listMembers());
     }
 
@@ -104,8 +104,12 @@ public class RoomController {
             return Result.error("You are not in this room anymore, or the room has been removed");
 
         room.sendMessage(user, vo.getMessage());
-//        log.info("Sent messages");
         return Result.ok();
+    }
+
+    @PostMapping("/public/list")
+    public Result<ListPublicRoomRespVo> listPublicRooms(@RequestBody PagingVo pagingVo) {
+        return Result.of(roomService.getPublicRoomsInfo(pagingVo.getPage(), pagingVo.getLimit()));
     }
 
 }

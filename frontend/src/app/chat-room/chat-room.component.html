@@ -17,19 +17,10 @@
                 <div class="col">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>Room Id</mat-label>
-                        <input matInput type="text" id="usernameInput" [(ngModel)]="roomId" [disabled]="isConnected">
-                        <button *ngIf="roomId" matSuffix mat-icon-button aria-label="Clear" (click)="roomId=''"
-                            [disabled]="isConnected">
-                            <mat-icon>close</mat-icon>
-                        </button>
+                        <input matInput type="text" id="usernameInput" [(ngModel)]="roomId" [disabled]="true">
                     </mat-form-field>
                     <div class="mb-2 text-right w-100">
-                        <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!isConnected">Create
-                            Room</button>
-                        <button mat-raised-button class="m-2" (click)="connectRoom()"
-                            *ngIf="!isConnected">Connect</button>
-                        <button mat-raised-button class="m-2" (click)="disconnectRoom()"
-                            *ngIf="isConnected">Disconnect</button>
+                        <button mat-raised-button class="m-2" (click)="disconnectRoom()">Disconnect</button>
                     </div>
                     <!-- messages  -->
                     <cdk-virtual-scroll-viewport #virtualScroll [itemSize]="50" [maxBufferPx]="500" class="w-100"
@@ -57,10 +48,8 @@
                     </cdk-virtual-scroll-viewport>
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>Message:</mat-label>
-                        <input matInput type="text" [(ngModel)]="currMsg" [disabled]="!isConnected"
-                            (keyup)="msgInputKeyPressed($event)">
-                        <button *ngIf="currMsg" matSuffix mat-icon-button aria-label="Clear" (click)="currMsg=''"
-                            [disabled]="!isConnected">
+                        <input matInput type="text" [(ngModel)]="currMsg" (keyup)="msgInputKeyPressed($event)">
+                        <button *ngIf="currMsg" matSuffix mat-icon-button aria-label="Clear" (click)="currMsg=''">
                             <mat-icon>close</mat-icon>
                         </button>
                     </mat-form-field>

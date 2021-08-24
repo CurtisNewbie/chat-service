@@ -27,6 +27,7 @@ import {
 import { RespInterceptor } from './interceptors/resp-interceptor';
 import { ErrorInterceptor } from './interceptors/error-interceptor';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { RoomListComponent } from './room-list/room-list.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     LoginComponent,
     NavComponent,
     LoginComponent,
+    RoomListComponent,
   ],
   imports: [
     BrowserModule,

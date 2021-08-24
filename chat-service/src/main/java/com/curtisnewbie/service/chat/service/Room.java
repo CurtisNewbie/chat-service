@@ -1,10 +1,12 @@
 package com.curtisnewbie.service.chat.service;
 
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
+import com.curtisnewbie.service.chat.consts.RoomType;
 import com.curtisnewbie.service.chat.vo.MemberVo;
 import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -60,7 +62,12 @@ public interface Room {
     /**
      * Create this room
      */
-    void create(@NotNull Client client);
+    void create(@NotNull Client client, @NotNull RoomType roomType, @NotEmpty String roomName);
+
+    /**
+     * Get room type
+     */
+    RoomType getRoomType();
 
     /**
      * Check if the room contains specified user

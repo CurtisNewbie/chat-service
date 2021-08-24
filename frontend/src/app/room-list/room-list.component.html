@@ -1,0 +1,40 @@
+<ng-container>
+    <h3>Chat Room</h3>
+    <div class="h-100 mt-2">
+        <mat-form-field appearance="fill" class="w-100" *ngIf="!selectedRoomId">
+            <mat-label>Room Name:</mat-label>
+            <input matInput type="text" [(ngModel)]="newRoomParam.roomName">
+            <button *ngIf="newRoomParam" matSuffix mat-icon-button aria-label="Clear"
+                (click)="newRoomParam.roomName=''">
+                <mat-icon>close</mat-icon>
+            </button>
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="w-100">
+            <mat-label>Room Id</mat-label>
+            <input matInput type="text" [(ngModel)]="selectedRoomId">
+            <button *ngIf="selectedRoomId" matSuffix mat-icon-button aria-label="Clear" (click)="selectedRoomId=''">
+                <mat-icon>close</mat-icon>
+            </button>
+        </mat-form-field>
+        <div class="mb-2 text-right w-100">
+            <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!selectedRoomId">Create
+                Room</button>
+            <button mat-raised-button class="m-2" (click)="connectRoom()" *ngIf="selectedRoomId">Connect</button>
+        </div>
+        <div class="mt-2">
+            <h4>Public Rooms:</h4>
+            <cdk-virtual-scroll-viewport #virtualScroll [itemSize]="20" [maxBufferPx]="200" class="w-100"
+                style="height: 400px;">
+                <mat-card *cdkVirtualFor="let r of rooms">
+                    <span class="list-group-item" (click)="selectedRoomId=r.roomId"
+                        matTooltip="Click to select room">{{r.roomName}}</span>
+                </mat-card>
+            </cdk-virtual-scroll-viewport>
+            <mat-paginator [length]="pagingController.paging.total" [pageSize]="pagingController.paging.limit"
+                [pageSizeOptions]="pagingController.PAGE_LIMIT_OPTIONS" (page)="handle($event)"
+                aria-label="Select page">
+            </mat-paginator>
+        </div>
+
+    </div>
+</ng-container>

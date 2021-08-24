@@ -8,12 +8,14 @@ import {
   PollMessageResponse,
   SendMessageRequest,
 } from './models/Message';
+import { Paging } from './models/paging';
 import { Resp } from './models/resp';
 import {
   ConnectRoomRequest,
   CreateRoomRequest,
   DisconnectRoomRequest,
   ListRoomMemberRequest,
+  Room,
 } from './models/Room';
 import { buildApiPath } from './util/api-util';
 
@@ -21,6 +23,9 @@ import { buildApiPath } from './util/api-util';
   providedIn: 'root',
 })
 export class RoomService {
+  roomId: string = null;
+  isConnected: boolean = false;
+
   constructor(private http: HttpClient) {}
 
   /**
@@ -91,6 +96,17 @@ export class RoomService {
     return this.http.post<Resp<PollMessageResponse>>(
       buildApiPath('/room/message/poll'),
       param,
+      HEADERS
+    );
+  }
+
+  /**
+   * List public rooms
+   */
+  public listPublicRooms(paging: Paging) {
+    return this.http.post<Resp<{ rooms: Room[]; total: number }>>(
+      buildApiPath('/room/public/list'),
+      paging,
       HEADERS
     );
   }
