@@ -29,6 +29,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
   members: Member[] = [];
   messages: Message[] = [];
   username: string = null;
+  needToScollToBottom = true;
 
   private msgIdSet: Set<number> = new Set();
   private pollMsgInterval = null;
@@ -57,6 +58,12 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.username = un;
       },
     });
+    this.virtualScroll.renderedRangeStream.subscribe({
+      next: (e) => {
+        // either user scrolled it or it has scrolled to the bottom
+        this.needToScollToBottom = false;
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -65,7 +72,9 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngAfterViewChecked(): void {
-    this.scrollToBottom();
+    if (this.needToScollToBottom) {
+      this.scrollToBottom();
+    }
   }
 
   /**
@@ -149,6 +158,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
             this.messages.push(msg);
             this.msgIdSet.add(msg.messageId);
             this.messages = [...this.messages];
+            this.needToScollToBottom = true;
           }
         },
         complete: () => {
@@ -184,6 +194,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
           }
           if (changed) {
             this.messages = [...this.messages];
+            this.needToScollToBottom = true;
           }
         },
       });
