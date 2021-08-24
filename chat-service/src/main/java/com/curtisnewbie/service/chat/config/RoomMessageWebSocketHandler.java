@@ -40,11 +40,12 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private ClientService clientService;
 
-    private Map<Integer, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private Map<Integer, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         UserVo user = getPrincipal(session);
+        sessionMap.put(user.getId(), session);
         log.info("User {} connected to web socket for messages", user.getUsername());
 
         // send the last message immediately, if there is one
@@ -58,6 +59,7 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         UserVo user = getPrincipal(session);
+        sessionMap.remove(user.getId());
         log.info("User {} disconnected from web socket for messages", user.getUsername());
     }
 
@@ -87,7 +89,7 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
 
         writeMessage(currSession, msgToSend);
         room.listMembers().forEach(m -> {
-            WebSocketSession wss = sessions.get(m.getId());
+            WebSocketSession wss = sessionMap.get(m.getId());
             if (wss != null && wss.isOpen()) {
                 writeMessage(wss, msgToSend);
             }
