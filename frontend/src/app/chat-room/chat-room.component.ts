@@ -129,6 +129,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
           this.notifi.toast(`Connected to room: ${this.roomId}`);
           this.isConnected = true;
           this.openMessageWebSocket();
+          this.pollMembers();
         },
       });
   }
