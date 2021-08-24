@@ -15,6 +15,8 @@ export class SocketService {
    */
   openMessageWebSocket(): WebSocketSubject<Message> {
     let wss: WebSocketSubject<Message> = webSocket({
+      // url: `ws://localhost:8081/socket/messages`,
+      // url: `ws://${location.host}/socket/messages`,
       // url: `wss://${location.host}/socket/messages`,
       url: `ws://${location.host}/socket/messages`,
       openObserver: {

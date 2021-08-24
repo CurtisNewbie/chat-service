@@ -22,14 +22,13 @@ import { Subscription } from 'rxjs';
   templateUrl: './chat-room.component.html',
   styleUrls: ['./chat-room.component.css'],
 })
-export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ChatRoomComponent implements OnInit, OnDestroy {
   roomId: string = null;
   currMsg: string = null;
   isConnected: boolean = false;
   members: Member[] = [];
   messages: Message[] = [];
   username: string = null;
-  needToScollToBottom = true;
 
   private msgIdSet: Set<number> = new Set();
   private pollMsgInterval = null;
@@ -58,23 +57,11 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.username = un;
       },
     });
-    this.virtualScroll.renderedRangeStream.subscribe({
-      next: (e) => {
-        // either user scrolled it or it has scrolled to the bottom
-        this.needToScollToBottom = false;
-      },
-    });
   }
 
   ngOnDestroy(): void {
     this.clearIntervals();
     this.closeMessageWebSocket();
-  }
-
-  ngAfterViewChecked(): void {
-    if (this.needToScollToBottom) {
-      this.scrollToBottom();
-    }
   }
 
   /**
@@ -143,13 +130,15 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   openMessageWebSocket() {
-    console.log('Openning websocket for messages');
+    console.log('Connecting websocket for messages');
     this.messageWebSocketSubject =
       this.websocketServices.openMessageWebSocket();
+
     if (this.messageWebSocketSubject.hasError) {
       console.log(this.messageWebSocketSubject.thrownError);
       this.notifi.toast('Failed to connect to room, please try again later');
     }
+
     this.messageWebSocketSubscrtiption = this.messageWebSocketSubject.subscribe(
       {
         next: (msg) => {
@@ -158,14 +147,14 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
             this.messages.push(msg);
             this.msgIdSet.add(msg.messageId);
             this.messages = [...this.messages];
-            this.needToScollToBottom = true;
+            // this.scrollToBottom();
           }
         },
-        complete: () => {
-          this.messageWebSocketSubscrtiption.unsubscribe();
-        },
+        complete: () => {},
       }
     );
+
+    console.log('Websocket connected for messages');
   }
 
   pollMessages() {
@@ -194,7 +183,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
           }
           if (changed) {
             this.messages = [...this.messages];
-            this.needToScollToBottom = true;
+            // this.scrollToBottom();
           }
         },
       });
@@ -227,6 +216,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
       return;
     }
 
+    console.log('Send', this.currMsg);
     this.messageWebSocketSubject.next({
       sender: null,
       message: this.currMsg,
@@ -287,7 +277,11 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
-  scrollToBottom(): void {
-    this.virtualScroll.scrollToIndex(this.messages.length - 1);
-  }
+  // scrollToBottom(): void {
+  //   // defer the action, because the virtualScroll may not detect the changes of items just yet
+  //   let itv = setInterval(() => {
+  //     this.virtualScroll.scrollToIndex(this.messages.length - 1);
+  //     clearInterval(itv);
+  //   }, 500);
+  // }
 }
