@@ -17,11 +17,6 @@ public interface Client {
     String getRoomId();
 
     /**
-     * Refresh expiration
-     */
-    void refreshExpiration();
-
-    /**
      * Clear all room id
      */
     void clearRoomId();

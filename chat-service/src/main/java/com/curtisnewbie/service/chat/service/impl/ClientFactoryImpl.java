@@ -20,9 +20,10 @@ public class ClientFactoryImpl implements ClientFactory {
 
     @Override
     public Client buildClient(@NotNull UserVo user) {
-        return RedisClientProxy.builder()
+        RedisClientProxy proxy = RedisClientProxy.builder()
                 .redissonClient(redissonClient)
                 .user(user)
                 .build();
+        return ClientRefreshExpirationDecorator.decorate(proxy);
     }
 }

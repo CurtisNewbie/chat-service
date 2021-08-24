@@ -19,10 +19,11 @@ public class RoomFactoryImpl implements RoomFactory {
 
     @Override
     public Room buildRoom(@NotNull String roomId) {
-        return RedisRoomProxy.builder()
+        RedisRoomProxy proxy = RedisRoomProxy.builder()
                 .redisson(redissonClient)
                 .roomId(roomId)
                 .build();
+        return RoomRefreshExpirationDecorator.decorate(proxy);
     }
 
 }

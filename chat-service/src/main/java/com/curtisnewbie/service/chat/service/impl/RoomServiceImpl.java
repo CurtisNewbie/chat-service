@@ -45,7 +45,6 @@ public class RoomServiceImpl implements RoomService {
 
         Room room = roomFactory.buildRoom(UUID.randomUUID().toString());
         room.create(user);
-        room.refreshExpiration();
         return room;
     }
 }

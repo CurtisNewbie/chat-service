@@ -25,19 +25,16 @@ public class RedisClientProxy implements Client {
 
     @Override
     public String getRoomId() {
-        refreshExpiration();
         RMap<Object, Object> map = getClientMap();
         return (String) map.get(ROOM_ID_FIELD);
     }
 
-    @Override
     public void refreshExpiration() {
         getClientMap().expire(3, TimeUnit.HOURS);
     }
 
     @Override
     public void clearRoomId() {
-        refreshExpiration();
         RMap<Object, Object> map = getClientMap();
         if (map.isExists())
             map.remove(ROOM_ID_FIELD);
@@ -46,7 +43,6 @@ public class RedisClientProxy implements Client {
     @Override
     public void addRoomId(String roomId) {
         getClientMap().put(ROOM_ID_FIELD, roomId);
-        refreshExpiration();
     }
 
     @Override

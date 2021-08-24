@@ -57,11 +57,6 @@ public interface Room {
     String getRoomId();
 
     /**
-     * Refresh expiration
-     */
-    void refreshExpiration();
-
-    /**
      * Create this room (should only called when this room doesn't exists)
      */
     void create(@NotNull UserVo createdBy);
