@@ -60,7 +60,7 @@ export class RoomListComponent implements OnInit {
     }
 
     let roomId = this.selectedRoomId;
-    this.roomService.room = roomId;
+    this.roomService.roomId = roomId;
     this.roomService.isConnected = false;
     this.notifi.toast(`Connected to room: ${roomId}`);
     this.nav.navigateTo(NavType.CHAT_ROOM);
