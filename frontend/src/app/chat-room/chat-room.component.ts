@@ -48,7 +48,6 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnInit(): void {
     // poll messages and members for every 10 seconds
-    this.pollMsgInterval = setInterval(() => this.pollMessages(), 10000);
     this.pollMembersInterval = setInterval(() => this.pollMembers(), 10000);
     if (!this.userService.hasUserInfo()) {
       this.userService.fetchUserInfo();
@@ -138,6 +137,10 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
     console.log('Openning websocket for messages');
     this.messageWebSocketSubject =
       this.websocketServices.openMessageWebSocket();
+    if (this.messageWebSocketSubject.hasError) {
+      console.log(this.messageWebSocketSubject.thrownError);
+      this.notifi.toast('Failed to connect to room, please try again later');
+    }
     this.messageWebSocketSubscrtiption = this.messageWebSocketSubject.subscribe(
       {
         next: (msg) => {
@@ -257,10 +260,20 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   closeMessageWebSocket(): void {
-    this.messageWebSocketSubscrtiption.unsubscribe();
-    this.messageWebSocketSubject.unsubscribe();
-    this.messageWebSocketSubject = null;
-    this.messageWebSocketSubscrtiption = null;
+    if (
+      this.messageWebSocketSubscrtiption != null &&
+      !this.messageWebSocketSubscrtiption.closed
+    ) {
+      this.messageWebSocketSubscrtiption.unsubscribe();
+      this.messageWebSocketSubscrtiption = null;
+    }
+    if (
+      this.messageWebSocketSubject != null &&
+      !this.messageWebSocketSubject.closed
+    ) {
+      this.messageWebSocketSubject.unsubscribe();
+      this.messageWebSocketSubject = null;
+    }
   }
 
   scrollToBottom(): void {
