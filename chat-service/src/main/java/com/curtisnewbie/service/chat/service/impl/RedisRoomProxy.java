@@ -85,7 +85,7 @@ public class RedisRoomProxy implements Room {
         Map<Object, Object> roomInfoMap = getRoomInfoMap().readAllMap();
         Set<Object> keys = roomInfoMap.keySet();
         for (Object key : keys) {
-            if (!Objects.equals(key, MESSAGE_ID_FIELD)) {
+            if (!Objects.equals(key, MESSAGE_ID_FIELD) && !Objects.equals(key, CREATE_DATE_FIELD)) {
                 members.add(MemberVo.builder()
                         .id((int) key)
                         .username((String) roomInfoMap.get(key))
