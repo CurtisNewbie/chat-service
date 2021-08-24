@@ -3,7 +3,6 @@ package com.curtisnewbie.service.chat.service.impl;
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import com.curtisnewbie.service.chat.service.Client;
 import com.curtisnewbie.service.chat.service.Room;
-import com.curtisnewbie.service.chat.util.RoomUtil;
 import com.curtisnewbie.service.chat.vo.MemberVo;
 import com.curtisnewbie.service.chat.vo.MessageVo;
 import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
@@ -19,9 +18,6 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static com.curtisnewbie.service.chat.util.RoomUtil.getRoomInfoMapKey;
-import static com.curtisnewbie.service.chat.util.RoomUtil.getRoomLockKey;
 
 //todo consider somehow we can cache this room instance?
 
@@ -189,7 +185,7 @@ public class RedisRoomProxy implements Room {
      * Sorted map (based on scores, which is the id of message) of messages
      */
     private RScoredSortedSet<MessageVo> getSortedMessageMap() {
-        return redisson.getScoredSortedSet(RoomUtil.getMsgScoredMapKey(roomId));
+        return redisson.getScoredSortedSet(getMsgScoredMapKey(roomId));
     }
 
     /**
@@ -214,6 +210,27 @@ public class RedisRoomProxy implements Room {
             log.error("Error occurred while obtaining lock", e);
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * Get lock key for the room
+     */
+    private static String getRoomLockKey(String roomId) {
+        return "room:lock:" + roomId;
+    }
+
+    /**
+     * Get key for zset for messages of the room
+     */
+    private static String getMsgScoredMapKey(String roomId) {
+        return "room:message:" + roomId;
+    }
+
+    /**
+     * Get map for information of the room
+     */
+    private static String getRoomInfoMapKey(String roomId) {
+        return "room:info:" + roomId;
     }
 
 }
