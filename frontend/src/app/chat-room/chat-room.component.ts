@@ -61,6 +61,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearIntervals();
+    this.closeMessageWebSocket();
   }
 
   /**
@@ -94,15 +95,12 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       .subscribe({
         complete: () => {
           this.roomId = null;
-          this.notifi.toast(`room disconnected`);
           this.isConnected = false;
           this.clearIntervals();
           this.messages = [];
           this.msgIdSet.clear();
-          this.messageWebSocketSubscrtiption.unsubscribe();
-          this.messageWebSocketSubject.unsubscribe();
-          this.messageWebSocketSubject = null;
-          this.messageWebSocketSubscrtiption = null;
+          this.closeMessageWebSocket();
+          this.notifi.toast(`room disconnected`);
         },
       });
   }
@@ -251,5 +249,12 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   clearIntervals(): void {
     if (this.pollMsgInterval) clearInterval(this.pollMsgInterval);
     if (this.pollMembersInterval) clearInterval(this.pollMembersInterval);
+  }
+
+  closeMessageWebSocket(): void {
+    this.messageWebSocketSubscrtiption.unsubscribe();
+    this.messageWebSocketSubject.unsubscribe();
+    this.messageWebSocketSubject = null;
+    this.messageWebSocketSubscrtiption = null;
   }
 }
