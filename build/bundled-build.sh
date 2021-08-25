@@ -12,4 +12,7 @@ fi
 
 cp -r ../frontend/dist/chatappfront/* ../chat-service/src/main/resources/static/
 
+mvn clean package -f ../chat-service
+
+
 
