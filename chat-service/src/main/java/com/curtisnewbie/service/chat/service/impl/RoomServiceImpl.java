@@ -89,7 +89,7 @@ public class RoomServiceImpl implements RoomService {
 
             return ListPublicRoomRespVo.builder()
                     .rooms(publicRooms)
-                    .total(publicRoomIds.size())
+                    .total(getPublicRoomMap().size())
                     .build();
         } finally {
             publicRoomsLock.unlock();
