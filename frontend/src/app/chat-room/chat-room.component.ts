@@ -1,28 +1,40 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  OnDestroy,
+  AfterViewInit,
+} from '@angular/core';
 import { Member } from '../models/Member';
 import { RoomService } from '../room.service';
 import { NotificationService } from '../notification.service';
 import { Message, PollMessageResponse } from '../models/Message';
 import { UserService } from '../user.service';
-import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import {
+  CdkVirtualScrollViewport,
+  ScrollDispatcher,
+} from '@angular/cdk/scrolling';
 import { SocketService } from '../socket.service';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import { Subscription } from 'rxjs';
 import { NavigationService, NavType } from '../navigation.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-chat-room',
   templateUrl: './chat-room.component.html',
   styleUrls: ['./chat-room.component.css'],
 })
-export class ChatRoomComponent implements OnInit, OnDestroy {
+export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewInit {
   roomId: string = null;
   currMsg: string = null;
   members: Member[] = [];
   messages: Message[] = [];
   username: string = null;
   roomName: string = '';
+  hasNewMessages: boolean = false;
 
+  private hasNewMsgSub: Subscription = null;
   private msgIdSet: Set<number> = new Set();
   private pollMsgInterval = null;
   private pollMembersInterval = null;
@@ -37,7 +49,8 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     private notifi: NotificationService,
     private userService: UserService,
     private websocketServices: SocketService,
-    private nav: NavigationService
+    private nav: NavigationService,
+    private scrollDispatcher: ScrollDispatcher
   ) {}
 
   ngOnInit(): void {
@@ -91,6 +104,24 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.clearIntervals();
     this.closeMessageWebSocket();
+    this.hasNewMsgSub.unsubscribe();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.hasNewMsgSub != null) {
+      return;
+    }
+    this.hasNewMsgSub = this.scrollDispatcher
+      .scrolled()
+      .pipe(
+        filter(
+          (event) => this.virtualScroll.measureScrollOffset('bottom') === 0
+        )
+      )
+      .subscribe((event) => {
+        // already seen the last message
+        this.hasNewMessages = false;
+      });
   }
 
   /**
@@ -135,7 +166,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
             this.messages.push(msg);
             this.msgIdSet.add(msg.messageId);
             this.messages = [...this.messages];
-            // this.scrollToBottom();
+            this.hasNewMessages = true;
           }
         },
       }
@@ -171,7 +202,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           }
           if (changed) {
             this.messages = [...this.messages];
-            // this.scrollToBottom();
+            this.hasNewMessages = true;
           }
         },
       });
@@ -266,11 +297,8 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     }
   }
 
-  // scrollToBottom(): void {
-  //   // defer the action, because the virtualScroll may not detect the changes of items just yet
-  //   let itv = setInterval(() => {
-  //     this.virtualScroll.scrollToIndex(this.messages.length - 1);
-  //     clearInterval(itv);
-  //   }, 500);
-  // }
+  scrollToBottom(): void {
+    this.virtualScroll.scrollToIndex(this.messages.length - 1);
+    this.hasNewMessages = false;
+  }
 }

@@ -20,28 +20,29 @@
                         <input matInput type="text" [ngModel]="roomId" readonly
                             matTooltip="Share this to others if you want them to join">
                     </mat-form-field>
-                    <div class="mb-2 text-right w-100">
+                    <div class="mb-2 w-100 d-flex justify-content-end">
                         <button mat-raised-button class="m-2" (click)="disconnectRoom()">Disconnect</button>
+                        <button mat-raised-button class="m-2" (click)="scrollToBottom()" *ngIf="hasNewMessages">Scroll
+                            to new messages</button>
                     </div>
                     <!-- messages  -->
-                    <cdk-virtual-scroll-viewport #virtualScroll [itemSize]="50" [maxBufferPx]="500" class="w-100"
+                    <cdk-virtual-scroll-viewport #virtualScroll [itemSize]="80" [maxBufferPx]="800" class="w-100"
                         style="height: 500px;">
                         <div *cdkVirtualFor="let msg of messages;">
                             <div class="rounded m-1">
                                 <div class="row">
                                     <div class="col">
-                                        <div *ngIf="!sentByCurrUser(msg)" class="label label-md bg-info p-2 rounded"
-                                            style="color:white">
-                                            <p><b>{{msg.sender}}:</b></p>
-                                            <p>{{msg.message}}</p>
-
+                                        <div *ngIf="!sentByCurrUser(msg)">
+                                            <span class="pl-2" style="font-size: 1.01rem;">{{msg.sender}}:</span>
+                                            <p class="label label-md bg-info p-2 rounded" style="color:white;">
+                                                {{msg.message}}</p>
                                         </div>
                                     </div>
                                     <div class="col"></div>
                                     <div class="col"></div>
                                     <div class="col">
                                         <p *ngIf="sentByCurrUser(msg)" class="label label-md bg-success p-2 rounded"
-                                            style="color:white">
+                                            style="color:white; word-break: break-all;">
                                             {{msg.message}}
                                         </p>
                                     </div>
@@ -51,7 +52,8 @@
                     </cdk-virtual-scroll-viewport>
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>Message:</mat-label>
-                        <input matInput type="text" [(ngModel)]="currMsg" (keyup)="msgInputKeyPressed($event)">
+                        <input matInput type="text" [(ngModel)]="currMsg" (keyup)="msgInputKeyPressed($event)"
+                            [maxLength]="100">
                     </mat-form-field>
                 </div>
             </div>
