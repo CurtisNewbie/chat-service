@@ -67,7 +67,12 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     this.roomName = this.roomService.room.roomName;
     if (!this.roomService.isConnected) {
       this.roomService.connectRoom({ roomId: this.roomId }).subscribe({
-        complete: () => {
+        next: (resp) => {
+          if (resp.hasError) {
+            this.nav.navigateTo(NavType.ROOM_LIST);
+            return;
+          }
+
           // once we enter the room, we open websocket
           this.openMessageWebSocket();
           this.pollMembers();
@@ -133,7 +138,6 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
             // this.scrollToBottom();
           }
         },
-        complete: () => {},
       }
     );
 
@@ -155,6 +159,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.hasError) return;
           let mp: PollMessageResponse = resp.data;
           let changed: boolean = false;
           for (let m of mp.messages) {
@@ -181,6 +186,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.hasError) return;
           this.members = resp.data;
         },
       });
@@ -224,6 +230,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   fetchMembers() {
     this.roomService.listMembers({ roomId: this.roomId }).subscribe({
       next: (resp) => {
+        if (resp.hasError) return;
         this.members = resp.data;
       },
     });

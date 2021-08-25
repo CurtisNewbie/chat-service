@@ -45,6 +45,8 @@ export class RoomListComponent implements OnInit {
 
     this.roomService.createNewRoom(this.newRoomParam).subscribe({
       next: (resp) => {
+        if (resp.hasError) return;
+
         let roomId = resp.data;
         this.roomService.room = {
           roomId: roomId,
@@ -83,6 +85,8 @@ export class RoomListComponent implements OnInit {
   fetchPublicRoomList() {
     this.roomService.listPublicRooms(this.pagingController.paging).subscribe({
       next: (resp) => {
+        if (resp.hasError) return;
+
         this.pagingController.updatePages(resp.data.total);
         this.rooms = resp.data.rooms;
       },

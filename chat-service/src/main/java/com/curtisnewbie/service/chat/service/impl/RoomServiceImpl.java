@@ -44,7 +44,7 @@ public class RoomServiceImpl implements RoomService {
     public Room getRoom(@NotNull String roomId) throws RoomNotFoundException {
         Room room = roomFactory.buildRoom(roomId);
         if (!room.exists())
-            throw new RoomNotFoundException("Room is not found");
+            throw new RoomNotFoundException("Room is not found, it may have been removed");
         return room;
     }
 
