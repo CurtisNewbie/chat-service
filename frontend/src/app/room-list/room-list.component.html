@@ -16,10 +16,20 @@
                 <mat-icon>close</mat-icon>
             </button>
         </mat-form-field>
-        <div class="mb-2 text-right w-100">
-            <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!selectedRoomId">Create
-                Room</button>
-            <button mat-raised-button class="m-2" (click)="connectRoom()" *ngIf="selectedRoomId">Connect</button>
+        <div class="d-flex justify-content-between">
+            <mat-form-field appearance="fill" class="m-2">
+                <mat-label>Room Type</mat-label>
+                <mat-select (valueChange)="newRoomParam.roomType = $event.value" [(value)]="newRoomParam.roomType">
+                    <mat-option [value]="option.value" *ngFor="let option of ROOM_TYPE_OPTIONS">
+                        {{option.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <div class="m-2">
+                <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!selectedRoomId">Create
+                    Room</button>
+                <button mat-raised-button class="m-2" (click)="connectRoom()" *ngIf="selectedRoomId">Connect</button>
+            </div>
         </div>
         <div class="mt-2">
             <h4>Public Rooms:</h4>

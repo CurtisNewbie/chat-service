@@ -1,4 +1,4 @@
-export interface Option {
+export interface Option<ValueType> {
   name: string;
-  value: any;
+  value: ValueType;
 }

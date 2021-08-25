@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PagingController } from '../models/paging';
 import { Room, RoomType } from '../models/Room';
+import { Option } from '../models/select-util';
 import { NavigationService, NavType } from '../navigation.service';
 import { NotificationService } from '../notification.service';
 import { RoomService } from '../room.service';
@@ -15,10 +16,14 @@ export class RoomListComponent implements OnInit {
   newRoomParam: {
     roomType: RoomType;
     roomName: string;
-  } = { roomType: RoomType.PUBLIC, roomName: '' };
+  } = { roomType: RoomType.PRIVATE, roomName: '' };
   selectedRoomId: string = '';
   rooms: Room[] = [];
   pagingController: PagingController = new PagingController();
+  readonly ROOM_TYPE_OPTIONS: Option<RoomType>[] = [
+    { name: 'public', value: RoomType.PUBLIC },
+    { name: 'private', value: RoomType.PRIVATE },
+  ];
 
   constructor(
     private roomService: RoomService,

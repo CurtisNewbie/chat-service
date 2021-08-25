@@ -154,7 +154,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
           let mp: PollMessageResponse = resp.data;
           let changed: boolean = false;
           for (let m of mp.messages) {
-            if (!this.msgIdSet.has(m.messageId)) {
+            if (m.messageId != null && !this.msgIdSet.has(m.messageId)) {
               changed = true;
               this.messages.push(m);
               this.msgIdSet.add(m.messageId);
