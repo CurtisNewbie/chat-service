@@ -18,6 +18,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -72,7 +73,7 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
         // get all members' sessions, and send the messages
         Room room = roomService.getRoom(roomId);
 
-        // todo, temporary disable this functionality until user really need to see the chat history
+        // todo, temporarily disable this functionality until user really need to see the chat history
 //        room.sendMessage(sender, content);
 
         // construct the actual message with information such as sender and messageId
@@ -81,6 +82,7 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
                         .message(content)
                         .messageId(room.nextMessageId())
                         .sender(sender.getUsername())
+                        .dateSent(new Date())
                         .build()
         );
 

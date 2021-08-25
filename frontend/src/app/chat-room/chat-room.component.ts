@@ -8,7 +8,7 @@ import {
 import { Member } from '../models/Member';
 import { RoomService } from '../room.service';
 import { NotificationService } from '../notification.service';
-import { Message, PollMessageResponse } from '../models/Message';
+import { Message, MessageVo, PollMessageResponse } from '../models/Message';
 import { UserService } from '../user.service';
 import {
   CdkVirtualScrollViewport,
@@ -39,7 +39,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewInit {
   private pollMsgInterval = null;
   private pollMembersInterval = null;
   private messageWebSocketSubscrtiption: Subscription = null;
-  private messageWebSocketSubject: WebSocketSubject<Message> = null;
+  private messageWebSocketSubject: WebSocketSubject<MessageVo> = null;
 
   @ViewChild('virtualScroll')
   virtualScroll: CdkVirtualScrollViewport;
@@ -163,7 +163,12 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewInit {
         next: (msg) => {
           console.log('wss', msg);
           if (msg.messageId != null && !this.msgIdSet.has(msg.messageId)) {
-            this.messages.push(msg);
+            this.messages.push({
+              messageId: msg.messageId,
+              message: msg.message,
+              sender: msg.sender,
+              dateSent: new Date(msg.dateSent),
+            });
             this.msgIdSet.add(msg.messageId);
             this.messages = [...this.messages];
             this.hasNewMessages = true;
@@ -300,5 +305,20 @@ export class ChatRoomComponent implements OnInit, OnDestroy, AfterViewInit {
   scrollToBottom(): void {
     this.virtualScroll.scrollToIndex(this.messages.length - 1);
     this.hasNewMessages = false;
+  }
+
+  dateToStr(d: Date): string {
+    // return (
+    //   d.getDate() +
+    //   '-' +
+    //   (d.getMonth() + 1) +
+    //   '-' +
+    //   d.getFullYear() +
+    //   ' ' +
+    //   d.getHours() +
+    //   ':' +
+    //   d.getMinutes()
+    // );
+    return d.getHours() + ':' + d.getMinutes();
   }
 }

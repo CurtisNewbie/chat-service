@@ -5,6 +5,19 @@ export interface Message {
   message: string;
   /** Message's id */
   messageId: number;
+  /** Message Date */
+  dateSent?: Date;
+}
+
+export interface MessageVo {
+  /** Sender's id */
+  sender: string;
+  /** Message */
+  message: string;
+  /** Message's id */
+  messageId: number;
+  /** Message Date */
+  dateSent?: number;
 }
 
 export interface SendMessageRequest {

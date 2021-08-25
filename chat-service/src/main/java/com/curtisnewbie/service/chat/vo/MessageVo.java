@@ -1,7 +1,10 @@
 package com.curtisnewbie.service.chat.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.Date;
 
 /**
  * <p>
@@ -28,11 +31,18 @@ public class MessageVo {
      */
     private Long messageId;
 
+    /**
+     * When the message was sent
+     */
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
+    private Date dateSent;
+
     @Builder
-    public MessageVo(String sender, String message, Long messageId) {
+    public MessageVo(String sender, String message, Long messageId, Date dateSent) {
         this.sender = sender;
         this.message = message;
         this.messageId = messageId;
+        this.dateSent = dateSent;
     }
 
     public MessageVo() {
