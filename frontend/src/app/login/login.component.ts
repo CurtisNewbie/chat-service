@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
       next: () => {
         // login successful
         this.userService.fetchUserInfo();
-        this.nav.navigateTo(NavType.CHAT_ROOM);
+        this.nav.navigateTo(NavType.ROOM_LIST);
         this.passwordInput = '';
       },
     });
