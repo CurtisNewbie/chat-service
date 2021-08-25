@@ -54,6 +54,11 @@
                         <mat-label>Message:</mat-label>
                         <input matInput type="text" [(ngModel)]="currMsg" (keyup)="msgInputKeyPressed($event)"
                             [maxLength]="100">
+
+                        <button matSuffix type="button" class="close" aria-label="Close" *ngIf="currMsg"
+                            (click)="currMsg = '';">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </mat-form-field>
                 </div>
             </div>
