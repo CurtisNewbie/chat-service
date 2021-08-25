@@ -28,6 +28,10 @@
     <appender-ref ref="STDOUT"/>
   </logger>
 
+  <logger name="com.curtisnewbie.service.chat.config.RoomMessageWebSocketHandler" additivity="false">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
   <logger name="com.curtisnewbie.module.auth.config.AuthenticationSuccessHandlerDelegate" additivity="false">
     <appender-ref ref="STDOUT"/>
   </logger>
