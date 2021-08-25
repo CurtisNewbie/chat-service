@@ -72,15 +72,42 @@ public class RedisRoomProxy implements Room {
     @Override
     public void addMember(@NotNull Client client) {
         UserVo user = client.getUser();
-        getRoomInfoMap().fastPut(user.getId(), user.getUsername());
-        client.addRoomId(roomId);
-        sendMessage(user, "Welcome! " + user.getUsername() + " just joined the room");
+
+        RLock roomLock = getRoomLock();
+        try {
+            while (!tryTimeoutLock(roomLock))
+                ;
+
+            getRoomInfoMap().fastPut(user.getId(), user.getUsername());
+            client.addRoomId(roomId);
+            sendMessage(user, "Welcome! " + user.getUsername() + " just joined the room");
+        } finally {
+            roomLock.unlock();
+        }
     }
 
     @Override
     public void removeMember(@NotNull Client client) {
         UserVo user = client.getUser();
-        getRoomInfoMap().remove(user.getId());
+
+        RLock roomLock = getRoomLock();
+        try {
+            while (!tryTimeoutLock(roomLock))
+                ;
+
+            getRoomInfoMap().remove(user.getId());
+            Integer v = (Integer) getRoomInfoMap().get(ROOM_TYPE_FIELD);
+            if (v != null) {
+                RoomType roomType = EnumUtils.parse(v, RoomType.class);
+                if (Objects.equals(roomType, RoomType.PRIVATE) && listMembers().isEmpty()) {
+                    // for private rooms, when there is no members in it, remove it
+                    log.info("Private room {} is empty, removing...", roomId);
+                    delete();
+                }
+            }
+        } finally {
+            roomLock.unlock();
+        }
         client.clearRoomId();
     }
 
@@ -88,6 +115,9 @@ public class RedisRoomProxy implements Room {
     public List<MemberVo> listMembers() {
         List<MemberVo> members = new ArrayList<>();
         Map<Object, Object> roomInfoMap = getRoomInfoMap().readAllMap();
+        if (roomInfoMap == null)
+            return Collections.emptyList();
+
         Set<Object> keys = roomInfoMap.keySet();
         for (Object key : keys) {
             if (!Objects.equals(key, MESSAGE_ID_FIELD)
@@ -193,8 +223,15 @@ public class RedisRoomProxy implements Room {
 
     @Override
     public void delete() {
-        getSortedMessageMap().deleteAsync();
-        getRoomInfoMap().deleteAsync();
+        RLock roomLock = getRoomLock();
+        try {
+            while (!tryTimeoutLock(roomLock))
+                ;
+            getSortedMessageMap().deleteAsync();
+            getRoomInfoMap().deleteAsync();
+        } finally {
+            roomLock.unlock();
+        }
     }
 
     /**
