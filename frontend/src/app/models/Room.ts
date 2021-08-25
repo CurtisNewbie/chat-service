@@ -38,4 +38,7 @@ export interface Room {
 
   /** Room's name */
   roomName: string;
+
+  /** Created by */
+  createdBy: string;
 }

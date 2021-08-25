@@ -67,6 +67,7 @@ public class RoomServiceImpl implements RoomService {
                         room.getRoomId(), RoomVo.builder()
                                 .roomName(req.getRoomName())
                                 .roomId(room.getRoomId())
+                                .createdBy(client.getUser().getUsername())
                                 .build()
                 );
             } finally {

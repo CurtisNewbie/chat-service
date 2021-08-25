@@ -34,8 +34,10 @@
         <div class="mt-2">
             <h4>Public Rooms:</h4>
             <div *ngFor="let r of rooms" class="list-group">
-                <span class="list-group-item" (click)="selectedRoomId=r.roomId"
-                    matTooltip="Click to select room">{{r.roomName}}</span>
+                <mat-card class="list-group-item" (click)="selectedRoomId=r.roomId" matTooltip="Click to select room">
+                    <p>Room: {{r.roomName}}</p>
+                    <p>Created by: {{r.createdBy}}</p>
+                </mat-card>
             </div>
             <mat-paginator [length]="pagingController.paging.total" [pageSize]="pagingController.paging.limit"
                 [pageSizeOptions]="pagingController.PAGE_LIMIT_OPTIONS" (page)="handle($event)"
