@@ -6,6 +6,7 @@ import com.curtisnewbie.service.chat.vo.ListPublicRoomRespVo;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 /**
  * <p>
@@ -16,6 +17,13 @@ import javax.validation.constraints.NotNull;
  */
 @Validated
 public interface RoomService {
+
+    /**
+     * Check if the room exists
+     *
+     * @param roomId
+     */
+    boolean roomExists(@NotNull String roomId);
 
     /**
      * Get room
@@ -40,5 +48,19 @@ public interface RoomService {
      * @param limit limit
      */
     ListPublicRoomRespVo getPublicRoomsInfo(int page, int limit);
+
+
+    /**
+     * Get public room ids
+     *
+     * @param page
+     * @param limit
+     */
+    Set<String> getPublicRoomIds(int page, int limit);
+
+    /**
+     * Remove specified public rooms
+     */
+    void removeFromPublicRooms(Set<String> roomIds);
 }
 

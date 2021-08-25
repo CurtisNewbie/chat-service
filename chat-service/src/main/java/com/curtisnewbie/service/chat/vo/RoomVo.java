@@ -21,10 +21,16 @@ public class RoomVo {
      */
     private String roomName;
 
+    /**
+     * Created by
+     */
+    private String createdBy;
+
     @Builder
-    public RoomVo(String roomId, String roomName) {
+    public RoomVo(String roomId, String roomName, String createdBy) {
         this.roomId = roomId;
         this.roomName = roomName;
+        this.createdBy = createdBy;
     }
 
     public RoomVo() {
