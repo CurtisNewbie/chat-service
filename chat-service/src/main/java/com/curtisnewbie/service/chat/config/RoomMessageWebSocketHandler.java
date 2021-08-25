@@ -2,11 +2,11 @@ package com.curtisnewbie.service.chat.config;
 
 import com.curtisnewbie.common.util.JsonUtils;
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
+import com.curtisnewbie.service.chat.exceptions.RoomNotFoundException;
 import com.curtisnewbie.service.chat.service.ClientService;
 import com.curtisnewbie.service.chat.service.Room;
 import com.curtisnewbie.service.chat.service.RoomService;
 import com.curtisnewbie.service.chat.vo.MessageVo;
-import com.curtisnewbie.service.chat.vo.PollMessageRespVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,48 +46,45 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         UserVo user = getPrincipal(session);
         sessionMap.put(user.getId(), session);
+        broadcastRoomMessage(user, user.getUsername() + " just joined the room", session);
         log.info("User {} connected to web socket for messages", user.getUsername());
-
-        // send the last message immediately, if there is one
-        String roomId = clientService.getClient(user).getRoomId();
-        Room room = roomService.getRoom(roomId);
-        PollMessageRespVo messages = room.getLastMessage();
-        if (!messages.getMessages().isEmpty())
-            writeMessage(session, buildMessage(messages.getMessages().get(0)));
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         UserVo user = getPrincipal(session);
         sessionMap.remove(user.getId());
-        log.info("User {} disconnected from web socket for messages", user.getUsername());
+        log.info("User {} disconnected from web socket for messages, close_status", user.getUsername(), status);
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession currSession, TextMessage msgIn) throws Exception {
+    protected void handleTextMessage(WebSocketSession senderSession, TextMessage msgIn) throws Exception {
         MessageVo receivedMessage = JsonUtils.readValueAsObject(msgIn.getPayload(), MessageVo.class);
+        UserVo sender = getPrincipal(senderSession);
+        broadcastRoomMessage(sender, receivedMessage.getMessage(), senderSession);
+    }
 
-        UserVo user = getPrincipal(currSession);
-
+    private void broadcastRoomMessage(UserVo sender, String content, WebSocketSession senderSession) throws RoomNotFoundException,
+            JsonProcessingException {
         // get rooms of client
-        String roomId = clientService.getClient(user).getRoomId();
+        String roomId = clientService.getClient(sender).getRoomId();
 
         // get all members' sessions, and send the messages
         Room room = roomService.getRoom(roomId);
 
-        // send the message to redis server
-        final long msgId = room.sendMessage(user, msgIn.getPayload());
+        // todo, temporary disable this functionality until user really need to see the chat history
+//        room.sendMessage(sender, content);
 
         // construct the actual message with information such as sender and messageId
         TextMessage msgToSend = buildMessage(
                 MessageVo.builder()
-                        .message(receivedMessage.getMessage())
-                        .messageId(msgId)
-                        .sender(user.getUsername())
+                        .message(content)
+                        .messageId(room.nextMessageId())
+                        .sender(sender.getUsername())
                         .build()
         );
 
-        writeMessage(currSession, msgToSend);
+        writeMessage(senderSession, msgToSend);
         room.listMembers().forEach(m -> {
             WebSocketSession wss = sessionMap.get(m.getId());
             if (wss != null && wss.isOpen()) {

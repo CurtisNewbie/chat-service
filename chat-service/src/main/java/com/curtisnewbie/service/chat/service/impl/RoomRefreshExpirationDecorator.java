@@ -34,6 +34,12 @@ public class RoomRefreshExpirationDecorator implements Room {
     }
 
     @Override
+    public long nextMessageId() {
+        room.refreshExpiration();
+        return room.nextMessageId();
+    }
+
+    @Override
     public void addMember(@NotNull Client client) {
         room.addMember(client);
         room.refreshExpiration();

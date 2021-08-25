@@ -21,10 +21,17 @@ import java.util.List;
 @Validated
 public interface Room {
 
+    // todo, now the server has adapted web socket, so this isn't used anymore, but it's useful when
+    //  we want to support user to view the previous messages in the room, this might be suppored later
     /**
      * Send message to other members in the room
      */
     long sendMessage(@NotNull UserVo user, @NotNull String msg);
+
+    /**
+     * Get next message id
+     */
+    long nextMessageId();
 
     /**
      * Add member
