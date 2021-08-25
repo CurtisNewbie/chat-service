@@ -30,7 +30,7 @@ public class RedisClientProxy implements Client {
     }
 
     public void refreshExpiration() {
-        getClientMap().expire(3, TimeUnit.HOURS);
+        getClientMap().expire(1, TimeUnit.HOURS);
     }
 
     @Override

@@ -169,8 +169,8 @@ public class RedisRoomProxy implements Room {
     }
 
     public void refreshExpiration() {
-        getRoomInfoMap().expire(3, TimeUnit.HOURS);
-        getSortedMessageMap().expire(3, TimeUnit.HOURS);
+        getRoomInfoMap().expire(10, TimeUnit.MINUTES);
+        getSortedMessageMap().expire(10, TimeUnit.MINUTES);
     }
 
     @Override
