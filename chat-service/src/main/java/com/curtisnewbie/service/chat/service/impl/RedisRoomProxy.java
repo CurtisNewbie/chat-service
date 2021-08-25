@@ -80,7 +80,7 @@ public class RedisRoomProxy implements Room {
 
             getRoomInfoMap().fastPut(user.getId(), user.getUsername());
             client.addRoomId(roomId);
-            sendMessage(user, "Welcome! " + user.getUsername() + " just joined the room");
+            sendMessage(user, user.getUsername() + " joined the room");
         } finally {
             roomLock.unlock();
         }
@@ -96,15 +96,19 @@ public class RedisRoomProxy implements Room {
                 ;
 
             getRoomInfoMap().remove(user.getId());
-            Integer v = (Integer) getRoomInfoMap().get(ROOM_TYPE_FIELD);
-            if (v != null) {
-                RoomType roomType = EnumUtils.parse(v, RoomType.class);
+            Integer roomTypeValue = (Integer) getRoomInfoMap().get(ROOM_TYPE_FIELD);
+            boolean isRoomRemoved = false;
+            if (roomTypeValue != null) {
+                RoomType roomType = EnumUtils.parse(roomTypeValue, RoomType.class);
                 if (Objects.equals(roomType, RoomType.PRIVATE) && listMembers().isEmpty()) {
                     // for private rooms, when there is no members in it, remove it
                     log.info("Private room {} is empty, removing...", roomId);
                     delete();
+                    isRoomRemoved = true;
                 }
             }
+            if (!isRoomRemoved)
+                sendMessage(user, user.getUsername() + " left the room");
         } finally {
             roomLock.unlock();
         }
