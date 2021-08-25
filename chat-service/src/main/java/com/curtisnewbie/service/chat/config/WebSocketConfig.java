@@ -1,5 +1,6 @@
 package com.curtisnewbie.service.chat.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 /**
  * @author yongjie.zhuang
  */
+@Slf4j
 @Controller
 @Configuration
 @EnableWebSocket
@@ -31,7 +33,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
                 .setHandshakeHandler(new DefaultHandshakeHandler());
 
-        if (allowedOrigins.length > 0)
+        if (allowedOrigins.length > 0) {
+            log.info("WebSocket allowed origins: {}", allowedOrigins);
             reg.setAllowedOrigins(allowedOrigins);
+        }
     }
 }

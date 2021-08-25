@@ -54,7 +54,7 @@ public class RoomMessageWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         UserVo user = getPrincipal(session);
         sessionMap.remove(user.getId());
-        log.info("User {} disconnected from web socket for messages, close_status", user.getUsername(), status);
+        log.info("User {} disconnected from web socket for messages, close_status: {}", user.getUsername(), status);
     }
 
     @Override
