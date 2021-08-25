@@ -1,7 +1,7 @@
 <ng-container>
     <h3>Room List</h3>
     <div class="mt-2">
-        <mat-form-field appearance="fill" class="w-100" *ngIf="!selectedRoomId">
+        <mat-form-field appearance="fill" class="w-100" *ngIf="!selectRoom">
             <mat-label>Room Name:</mat-label>
             <input matInput type="text" [(ngModel)]="newRoomParam.roomName">
             <button *ngIf="newRoomParam" matSuffix mat-icon-button aria-label="Clear"
@@ -11,10 +11,7 @@
         </mat-form-field>
         <mat-form-field appearance="fill" class="w-100">
             <mat-label>Room Id</mat-label>
-            <input matInput type="text" [(ngModel)]="selectedRoomId">
-            <button *ngIf="selectedRoomId" matSuffix mat-icon-button aria-label="Clear" (click)="selectedRoomId=''">
-                <mat-icon>close</mat-icon>
-            </button>
+            <input matInput type="text" [(ngModel)]="!selectRoom" disabled="true">
         </mat-form-field>
         <div class="d-flex justify-content-between">
             <mat-form-field appearance="fill" class="m-2">
@@ -26,18 +23,23 @@
                 </mat-select>
             </mat-form-field>
             <div class="m-2">
-                <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!selectedRoomId">Create
+                <button mat-raised-button class="m-2" (click)="createRoom()" *ngIf="!selectRoom">Create
                     Room</button>
-                <button mat-raised-button class="m-2" (click)="connectRoom()" *ngIf="selectedRoomId">Connect</button>
+                <button mat-raised-button class="m-2" (click)="connectRoom()" *ngIf="selectRoom">Connect</button>
             </div>
         </div>
         <div class="mt-2">
             <h4>Public Rooms:</h4>
-            <div *ngFor="let r of rooms" class="list-group">
-                <mat-card class="list-group-item" (click)="selectedRoomId=r.roomId" matTooltip="Click to select room">
-                    <p>Room: {{r.roomName}}</p>
-                    <p>Created by: {{r.createdBy}}</p>
-                </mat-card>
+            <div class="d-flex justify-content-end m-2">
+                <button mat-raised-button class="m-2" (click)="fetchPublicRoomList()">Fetch</button>
+            </div>
+            <div class="mt-2">
+                <div *ngFor="let r of rooms" class="list-group">
+                    <mat-card class="list-group-item" (click)="selectRoom(r)" matTooltip="Click to select room">
+                        <p>Room: {{r.roomName}}</p>
+                        <p>Created by: {{r.createdBy}}</p>
+                    </mat-card>
+                </div>
             </div>
             <mat-paginator [length]="pagingController.paging.total" [pageSize]="pagingController.paging.limit"
                 [pageSizeOptions]="pagingController.PAGE_LIMIT_OPTIONS" (page)="handle($event)"

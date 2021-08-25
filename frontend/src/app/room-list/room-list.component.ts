@@ -1,3 +1,4 @@
+import { NullTemplateVisitor } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import { PagingController } from '../models/paging';
 import { Room, RoomType } from '../models/Room';
@@ -12,12 +13,11 @@ import { RoomService } from '../room.service';
   styleUrls: ['./room-list.component.css'],
 })
 export class RoomListComponent implements OnInit {
-  // todo add select for RoomType
   newRoomParam: {
     roomType: RoomType;
     roomName: string;
   } = { roomType: RoomType.PRIVATE, roomName: '' };
-  selectedRoomId: string = '';
+  selectedRoom: Room = null;
   rooms: Room[] = [];
   pagingController: PagingController = new PagingController();
   readonly ROOM_TYPE_OPTIONS: Option<RoomType>[] = [
@@ -47,7 +47,12 @@ export class RoomListComponent implements OnInit {
     this.roomService.createNewRoom(this.newRoomParam).subscribe({
       next: (resp) => {
         let roomId = resp.data;
-        this.roomService.roomId = roomId;
+        this.roomService.room = {
+          roomId: roomId,
+          roomName: this.newRoomParam.roomName,
+          createdBy: '', // todo fix this
+        };
+        this.roomService.room.roomId = roomId;
         this.roomService.isConnected = true;
         this.notifi.toast(`Connected to room: ${roomId}`);
         this.nav.navigateTo(NavType.CHAT_ROOM);
@@ -59,13 +64,18 @@ export class RoomListComponent implements OnInit {
    * Connect to the chat room
    */
   connectRoom() {
-    if (!this.selectedRoomId) {
+    if (!this.selectedRoom) {
       this.notifi.toast('Please create a room or select a room to connect');
       return;
     }
 
-    let roomId = this.selectedRoomId;
-    this.roomService.roomId = roomId;
+    let roomId = this.selectedRoom.roomId;
+    this.roomService.room = {
+      roomId: roomId,
+      roomName: this.newRoomParam.roomName,
+      createdBy: this.selectedRoom.createdBy,
+    };
+
     this.roomService.isConnected = false;
     this.notifi.toast(`Connected to room: ${roomId}`);
     this.nav.navigateTo(NavType.CHAT_ROOM);
@@ -86,5 +96,9 @@ export class RoomListComponent implements OnInit {
   handle(event) {
     this.pagingController.handle(event);
     this.fetchPublicRoomList();
+  }
+
+  selectRoom(room: Room) {
+    this.selectedRoom = { ...room };
   }
 }

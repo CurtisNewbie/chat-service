@@ -21,6 +21,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
   members: Member[] = [];
   messages: Message[] = [];
   username: string = null;
+  roomName: string = '';
 
   private msgIdSet: Set<number> = new Set();
   private pollMsgInterval = null;
@@ -54,13 +55,14 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
 
     // page refresh (e.g., F5)
     let isConnected = this.roomService.isConnected;
-    if (!isConnected && !this.roomService.roomId) {
+    if (!isConnected && !this.roomService.room.roomId) {
       this.nav.navigateTo(NavType.ROOM_LIST);
       return;
     }
 
     // we have roomId, but we are not connected yet
-    this.roomId = this.roomService.roomId;
+    this.roomId = this.roomService.room.roomId;
+    this.roomName = this.roomService.room.roomName;
     if (!isConnected) {
       this.roomService.connectRoom({ roomId: this.roomId }).subscribe({
         complete: () => {

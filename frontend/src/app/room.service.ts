@@ -23,8 +23,8 @@ import { buildApiPath } from './util/api-util';
   providedIn: 'root',
 })
 export class RoomService {
-  roomId: string = null;
   isConnected: boolean = false;
+  room: Room = null;
 
   constructor(private http: HttpClient) {}
 
