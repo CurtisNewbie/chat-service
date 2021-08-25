@@ -54,8 +54,10 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     });
 
     // page refresh (e.g., F5)
-    let isConnected = this.roomService.isConnected;
-    if (!isConnected && !this.roomService.room.roomId) {
+    if (
+      this.roomService.room == null ||
+      (!this.roomService.isConnected && !this.roomService.room.roomId)
+    ) {
       this.nav.navigateTo(NavType.ROOM_LIST);
       return;
     }
@@ -63,7 +65,7 @@ export class ChatRoomComponent implements OnInit, OnDestroy {
     // we have roomId, but we are not connected yet
     this.roomId = this.roomService.room.roomId;
     this.roomName = this.roomService.room.roomName;
-    if (!isConnected) {
+    if (!this.roomService.isConnected) {
       this.roomService.connectRoom({ roomId: this.roomId }).subscribe({
         complete: () => {
           // once we enter the room, we open websocket

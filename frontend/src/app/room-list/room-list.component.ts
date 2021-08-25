@@ -17,7 +17,6 @@ export class RoomListComponent implements OnInit {
     roomType: RoomType;
     roomName: string;
   } = { roomType: RoomType.PRIVATE, roomName: '' };
-  selectedRoom: Room = null;
   rooms: Room[] = [];
   pagingController: PagingController = new PagingController();
   readonly ROOM_TYPE_OPTIONS: Option<RoomType>[] = [
@@ -52,9 +51,8 @@ export class RoomListComponent implements OnInit {
           roomName: this.newRoomParam.roomName,
           createdBy: '', // todo fix this
         };
-        this.roomService.room.roomId = roomId;
         this.roomService.isConnected = true;
-        this.notifi.toast(`Connected to room: ${roomId}`);
+        this.notifi.toast(`Created room: ${this.newRoomParam.roomName}`);
         this.nav.navigateTo(NavType.CHAT_ROOM);
       },
     });
@@ -63,21 +61,19 @@ export class RoomListComponent implements OnInit {
   /**
    * Connect to the chat room
    */
-  connectRoom() {
-    if (!this.selectedRoom) {
-      this.notifi.toast('Please create a room or select a room to connect');
+  connectRoom(room: Room) {
+    if (room == null) {
       return;
     }
 
-    let roomId = this.selectedRoom.roomId;
     this.roomService.room = {
-      roomId: roomId,
-      roomName: this.newRoomParam.roomName,
-      createdBy: this.selectedRoom.createdBy,
+      roomId: room.roomId,
+      roomName: room.roomName,
+      createdBy: room.createdBy,
     };
 
     this.roomService.isConnected = false;
-    this.notifi.toast(`Connected to room: ${roomId}`);
+    this.notifi.toast(`Connected to room: ${room.roomName}`);
     this.nav.navigateTo(NavType.CHAT_ROOM);
   }
 
@@ -96,9 +92,5 @@ export class RoomListComponent implements OnInit {
   handle(event) {
     this.pagingController.handle(event);
     this.fetchPublicRoomList();
-  }
-
-  selectRoom(room: Room) {
-    this.selectedRoom = { ...room };
   }
 }
