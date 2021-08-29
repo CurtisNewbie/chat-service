@@ -7,7 +7,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
-@EnableRedisHttpSession
+@EnableRedisHttpSession(redisNamespace = "chat-service")
 @PropertySources({
 		@PropertySource("classpath:dubbo.properties"),
 		@PropertySource("classpath:application.properties"),
