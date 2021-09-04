@@ -41,11 +41,6 @@
 
     <dependency>
       <groupId>com.curtisnewbie</groupId>
-      <artifactId>redis-util-module</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.curtisnewbie</groupId>
       <artifactId>authmodule</artifactId>
     </dependency>
 

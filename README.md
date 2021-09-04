@@ -9,12 +9,12 @@ Two job beans are created that may run to cleanup some expired rooms:
 - com.curtisnewbie.service.chat.job.ClearRoomJob
 - com.curtisnewbie.service.chat.job.ClearExpiredPublicRoomListJob
 
-These jobs are run by the `distributed-task-module`, you may schedule these two jobs by adding following two lines in the table (for more see the `distributed-task-module`):
+These jobs are run by the `distributed-task-module`, you may schedule these two jobs by adding following two lines in the `task` table (for more information see the `distributed-task-module`):
 
 |id |job_name      |target_bean |cron_expr    |app_group   |enabled|concurrent_enabled|
 |---|--------------|------------|-------------|------------|-------|------------------|
-|2  |clear expired room|clearRoomJob|0 0/1 * ? * *|chat-service|0      |0                 |
-|3  |remove expired room from public room list|clearExpiredPublicRoomListJob|0 0/1 * ? * *|chat-service|0|0|                 
+|2  |clear expired room|clearRoomJob|0 0/1 * ? * *|chat-service|1      |0                 |
+|3  |remove expired room from public room list|clearExpiredPublicRoomListJob|0 0/1 * ? * *|chat-service|1|0|                 
 
 ## Related-Services
 
@@ -22,7 +22,7 @@ These jobs are run by the `distributed-task-module`, you may schedule these two 
     - description: service for managing users, access log and operation log.
     - url: https://github.com/CurtisNewbie/auth-service
 
-## Middlewares
+## Middleware
 
 - MySQL
 - Nacos (or others, e.g., Zookeeper, Redis, etc)
@@ -52,11 +52,6 @@ This project depends on the following modules that you must manually install (us
 - service-module
     - description: import dependencies for a Dubbo service
     - url: https://github.com/CurtisNewbie/service-module
-    - branch: main
-
-- redis-util-module
-    - description: Utility classes for Redis
-    - url: https://github.com/CurtisNewbie/redis-util-module
     - branch: main
 
 - distributed-task-module
