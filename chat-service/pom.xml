@@ -41,7 +41,7 @@
 
     <dependency>
       <groupId>com.curtisnewbie</groupId>
-      <artifactId>authmodule</artifactId>
+      <artifactId>auth-module</artifactId>
     </dependency>
 
     <dependency>
@@ -80,7 +80,7 @@
       <dependency>
         <groupId>com.curtisnewbie</groupId>
         <artifactId>curtisnewbie-bom</artifactId>
-        <version>micro-0.0.1</version>
+        <version>micro-2.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
