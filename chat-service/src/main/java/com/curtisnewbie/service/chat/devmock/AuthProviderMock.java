@@ -1,6 +1,6 @@
 package com.curtisnewbie.service.chat.devmock;
 
-import com.curtisnewbie.module.auth.config.AuthProvider;
+import com.curtisnewbie.module.auth.processing.RemoteAuthenticationProvider;
 import com.curtisnewbie.service.auth.remote.consts.UserRole;
 import com.curtisnewbie.service.auth.remote.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 /**
  * <p>
- * Mock bean for {@link AuthProvider}, only active under 'dev' profile for development.
+ * Mock bean for {@link RemoteAuthenticationProvider}, only active under 'dev' profile for development.
  * </p>
  * <p>
  * This bean is used for development, such that the auth-service doesn't need to startup for it to work.
@@ -28,7 +28,7 @@ import java.util.Arrays;
 @Profile("dev")
 @Primary
 @Component
-public class AuthProviderMock extends AuthProvider {
+public class AuthProviderMock extends RemoteAuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
